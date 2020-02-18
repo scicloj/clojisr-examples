@@ -1,14 +1,18 @@
 # clojisr-examples
 
-A Clojure library designed to ... well, that part is up to you.
+We use this repo to create and share examples of using [Clojisr](https://github.com/scicloj/clojisr).
 
-## Usage
+## Rendered examples
 
-FIXME
+* [Template](https://scicloj.github.io/clojisr-examples/resources/public/clojisr-examples/v1/template/index.html)
+* [Rmarkdown](https://scicloj.github.io/clojisr-examples/resources/public/clojisr-examples/v1/rmarkdown/index.html)
+
+## How to add your examples
+This will soon be documented.
 
 ## License
 
-Copyright © 2020 FIXME
+Copyright © 2020 Scicloj
 
 This program and the accompanying materials are made available under the
 terms of the Eclipse Public License 2.0 which is available at
