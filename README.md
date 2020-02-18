@@ -4,8 +4,8 @@ We use this repo to create and share examples of using [Clojisr](https://github.
 
 ## Rendered examples
 
-* [Template](https://scicloj.github.io/clojisr-examples/resources/public/clojisr-examples/v1/template/index.html)
-* [Rmarkdown](https://scicloj.github.io/clojisr-examples/resources/public/clojisr-examples/v1/rmarkdown/index.html)
+* [Template](https://scicloj.github.io/clojisr-examples/resources/public/clojisr-examples/template/index.html)
+* [Rmarkdown](https://scicloj.github.io/clojisr-examples/resources/public/clojisr-examples/rmarkdown/index.html)
 
 ## How to add your examples
 This will soon be documented.
