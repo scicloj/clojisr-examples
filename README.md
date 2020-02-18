@@ -6,7 +6,7 @@ We use this repo to create and share examples of using [Clojisr](https://github.
 
 * [Template](https://scicloj.github.io/clojisr-examples/resources/public/clojisr-examples/template/index.html)
 * [Rmarkdown](https://scicloj.github.io/clojisr-examples/resources/public/clojisr-examples/rmarkdown/index.html)
-* [Shiny](./src/clojisr-examples/shiny.clj)
+* [Shiny](./src/clojisr_examples/shiny.clj)
 
 ## How to add your examples
 This will soon be documented.
