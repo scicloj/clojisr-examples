@@ -6,13 +6,15 @@
 
 (note-md "Code from the book ported to `clojisr` library. Read the book and run a code in Clojure.")
 
+(note-void :Setup)
+
 (note-md "## Setup")
 
 (note-md "Imports from `clojisr` library.")
 
 (note-void (require '[clojisr.v1.r :as r :refer [r r->clj clj->r r+ colon bra bra<-]]
                     '[clojisr.v1.require :refer [require-r]]
-                    '[clojisr.v1.applications.plotting :refer [plot->svg plot->file]]
+                    '[clojisr.v1.applications.plotting :refer [plot->file]]
                     '[tech.ml.dataset :as dataset]
                     '[notespace.v1.util :refer [check]]))
 
@@ -21,7 +23,8 @@
 (note-void (require-r '[base :as base :refer [$ <- $<-]]
                       '[utils :as u]
                       '[stats :as stats]
-                      '[graphics :as g]))
+                      '[graphics :as g]
+                      '[datasets :refer :all]))
 
 (note-md "We will also use `def-r` macro (not shown here) which helps to define the same things on both sides (Clojure and R).")
 
@@ -29,6 +32,8 @@
   `(do
      (def ~name ~@r)
      (<- '~(symbol name) ~name)))
+
+(note-void :Chapter-1)
 
 (note-md "## Chapter 1 - Introduction")
 
@@ -132,21 +137,22 @@
           (rdiv 16)
           (r* 100)))
 
-(note-as-hiccup (plot->svg #(g/barplot (base/rev difference)
-                                       :xlab "Election years 1948 to 2008",
-                                       :ylab "Height difference in cm")))
-
 (def target-path (second (re-find #"(.*)/[^/]*" (notespace.v1.note/ns->out-filename *ns*))))
 
-(note-void (plot->file (str target-path "/ch1ex2.png") #(g/plot winner opponent) :width 675 :height 675))
+(note-void (plot->file (str target-path "/ch1ex2.png") #(g/barplot (base/rev difference)
+                                                                   :xlab "Election years 1948 to 2008",
+                                                                   :ylab "Height difference in cm")))
 (note-hiccup [:image {:src "ch1ex2.png"}])
+
+(note-void (plot->file (str target-path "/ch1ex2b.png") #(g/plot winner opponent)))
+(note-hiccup [:image {:src "ch1ex2b.png"}])
 
 (note-md "#### Example 1.3 - horsekicks")
 
 (note-void (def k [0 1 2 3 4])
            (def x [109 65 22 3 1]))
 
-(note-void (plot->file (str target-path "/ch1ex3.png") #(g/barplot x :names.arg k) :width 675 :height 675))
+(note-void (plot->file (str target-path "/ch1ex3.png") #(g/barplot x :names.arg k)))
 (note-hiccup [:image {:src "ch1ex3.png"}])
 
 (note (def rpow (r "`^`")))
@@ -202,6 +208,132 @@
 (note-md "### 1.1.4 - The R Help System")
 
 (note-md "Unfortunately `help` or `example` commands do not work")
+
+(note-md "## 1.2 - Functions")
+
+(note-md "Two ways to define functions.")
+
+(note-md "R string")
+(note (def f1 (r "function(...) {1}")))
+(note (f1))
+(note-md "Clojure style")
+(note (def f2 (r '(function [...] 1))))
+(note (f2))
+
+(note-md "#### Example 1.5 - function definition")
+
+(note (def var-n (r '(function [x]
+                               (= v (var x))
+                               (= n (NROW x))
+                               (/ (* (- n 1) v) n)))))
+
+(note (stats/var temps))
+(note (var-n temps))
+
+(note-md "#### Example 1.6 - functions as arguments")
+
+(note (def f (r "function(x, a=1, b=1) x^(a-1) * (1-x)^(b-1)")))
+(note (let [x (base/seq 0 1 0.2)]
+        (f x :a 2 :b 2)))
+
+(note (stats/integrate f :lower 0 :upper 1 :a 2 :b 2))
+
+(note (base/beta 2 2))
+
+(note-md "#### Example 1.7 - graphing a function using `curve`")
+
+(note-void (plot->file (str target-path "/ch1ex7.png") #(g/curve '(* x (- 1 x))
+                                                                 :from 0 :to 1 :ylab "f(x)")))
+(note-hiccup [:image {:src "ch1ex7.png"}])
+
+
+(note-md "## 1.3 - Vectors and Matrices")
+
+(note-md "#### Example 1.8 - Class mobility")
+
+(note (def probs [0.45 0.05 0.01 0.48 0.70 0.50 0.07 0.25 0.49]))
+(note (def P (base/matrix probs :nrow 3 :ncol 3)))
+(note-md "Currently matrix is flat array in Clojure")
+(note (r->clj P))
+
+(note (def P (let [names ["lower" "middle" "upper"]]
+               (-> P
+                   (base/rownames<- names)
+                   (base/colnames<- names)))))
+
+(note (base/rowSums P))
+(note (base/apply P :MARGIN 1 :FUN base/sum))
+
+(note (def P2 (base/%*% P P)))
+
+(note (bra P2 1 3))
+(note (bra P2 1 (r/empty-symbol)))
+
+(note (let [P4 (base/%*% P2 P2)
+            P8 (base/%*% P4 P4)]
+        P8))
+
+
+(note (def Q (base/matrix [0.45 0.48 0.07
+                           0.05 0.70 0.25
+                           0.01 0.50 0.49] :nrow 3 :ncol 3 :byrow true)))
+
+(note-md "## 1.4 - Data Frames")
+
+(note-md "### 1.4.1 - Introduction to data frames")
+
+(note-md "#### Example 1.9 - USArrests")
+
+(note USArrests)
+(note (r->clj USArrests))
+(note (u/head USArrests))
+(note (base/NROW USArrests))
+(note (base/dim USArrests))
+(note (base/names USArrests))
+(note-md "`str` doesn't return anything, try `ls-str` instead.")
+(note (u/ls-str USArrests))
+(note (base/any (base/is-na USArrests)))
+
+(note-md "### 1.4.2 - Working with a data frame")
+
+(note (base/summary USArrests))
+(note (bra USArrests "California" "Murder"))
+(note (bra USArrests "California" (r/empty-symbol)))
+(note ($ USArrests 'Assault))
+
+(note-void (plot->file (str target-path "/ch1ex9.png") #(g/hist ($ USArrests 'Assault))))
+(note-hiccup [:image {:src "ch1ex9.png"}])
+
+(note (require-r '[MASS]))
+
+(note-void (plot->file (str target-path "/ch1ex9b.png") #(r.MASS/truehist ($ USArrests 'Assault))))
+(note-hiccup [:image {:src "ch1ex9b.png"}])
+
+(note-void (plot->file (str target-path "/ch1ex9c.png") #(g/hist ($ USArrests 'Assault)
+                                                                 :prob true :breaks "scott")))
+(note-hiccup [:image {:src "ch1ex9c.png"}])
+
+(note-md "Attach creates symbols on the R side, use Clojure symbols (ex. 'Murder) to access them.")
+(note (base/attach USArrests))
+
+(note (def murder-pct (r '(/ (* 100 Murder)
+                             (+ (+ Murder Assault) Rape)))))
+(note (u/head murder-pct))
+
+#_(note-md "problems with `with`")
+#_(note (base/with USArrests :expr '(= murder-pct (/ (* 100 Murder)
+                                                     (+ (+ Murder Assault) Rape)))))
+
+(note-void (plot->file (str target-path "/ch1ex9d.png") #(g/plot 'UrbanPop 'Murder)))
+(note-hiccup [:image {:src "ch1ex9d.png"}])
+
+(note-void (plot->file (str target-path "/ch1ex9e.png") #(g/pairs USArrests)))
+(note-hiccup [:image {:src "ch1ex9e.png"}])
+
+(note (stats/cor 'UrbanPop 'Murder))
+(note (stats/cor USArrests))
+
+#_(note-md "## 1.5 - Importing Data")
 
 (note/render-this-ns!)
 
