@@ -5,6 +5,7 @@
 (note-md "# 'R by Example' by Jim Albert and Maria Rizzo - read-along")
 
 (note-md "Code from the book ported to `clojisr` library. Read the book and run a code in Clojure.")
+(note-md "Data: http://personal.bgsu.edu/~mrizzo/Rx/Rx-data/")
 
 (note-void :Setup)
 
@@ -32,6 +33,13 @@
   `(do
      (def ~name ~@r)
      (<- '~(symbol name) ~name)))
+
+(note-md "Ensure R working folder is the same as Clojure.")
+
+(note-void (base/setwd (.getAbsolutePath (java.io.File. "."))))
+
+(note-md "Options")
+(note-void (base/options :width 120 :digits 7))
 
 (note-void :Chapter-1)
 
@@ -214,11 +222,11 @@
 (note-md "Two ways to define functions.")
 
 (note-md "R string")
-(note (def f1 (r "function(...) {1}")))
-(note (f1))
+(note (def f1 (r "function(...) {1.0}")))
 (note-md "Clojure style")
-(note (def f2 (r '(function [...] 1))))
-(note (f2))
+(note (def f2 (r '(function [...] 1.0))))
+
+(note (check = (r->clj (f1)) (r->clj (f2))))
 
 (note-md "#### Example 1.5 - function definition")
 
@@ -296,6 +304,8 @@
 
 (note-md "### 1.4.2 - Working with a data frame")
 
+(note-md "#### Example 1.10 - USArrests, cont.")
+
 (note (base/summary USArrests))
 (note (bra USArrests "California" "Murder"))
 (note (bra USArrests "California" (r/empty-symbol)))
@@ -333,8 +343,240 @@
 (note (stats/cor 'UrbanPop 'Murder))
 (note (stats/cor USArrests))
 
-#_(note-md "## 1.5 - Importing Data")
+(note-md "## 1.5 - Importing Data")
+
+(note-md "### 1.5.1 - Entering data manually")
+
+(note-md "#### Example 1.11 - Data from a textbook")
+
+(note (def y (let [y1 [22 26]
+                   y2 [28 24 29]
+                   y3 [29 32 28]
+                   y4 [23 24]]
+               (concat y1 y2 y3 y4))))
+
+(note (def model (base/c (base/rep "A" 2)
+                         (base/rep "B" 3)
+                         (base/rep "C" 3)
+                         (base/rep "D" 2))))
+
+(note (def mileages (base/data-frame :y y :model model)))
+
+(note-md "### 1.5.2 - Importing data from a text file")
+
+(note-md "#### Example 1.12 - Massachusetts Lunatics")
+
+(note-void (def lunatics1 (u/read-table "data/lunatics.txt" :header true)))
+(note (u/head lunatics1))
+(note-void (def dat (u/read-table "data/college.txt" :header true :sep "\t")))
+(note (u/head dat))
+(note-void (def lunatics2 (u/read-table "data/lunatics.csv" :header true :sep ",")))
+(note (u/head lunatics2))
+(note-void (def lunatics3 (u/read-csv "data/lunatics.csv")))
+(note (u/head lunatics3))
+
+(note-md "### 1.5.3 - Data available on the internet")
+
+(note-md "#### Example 1.13 - Digits of PI")
+
+(note-void (def pidigits (u/read-table "http://www.itl.nist.gov/div898/strd/univ/data/PiDigits.dat" :skip 60)))
+(note (u/head pidigits))
+(note (base/table pidigits))
+(note (def prop (rdiv (base/table pidigits) 5000)))
+(note (Math/sqrt (/ (* 0.1 0.9) 5000)))
+(note (base/sqrt (rdiv (r* 0.1 0.9) 5000)))
+(note (def se-hat (base/sqrt (rdiv (r* prop (r- 1.0 prop)) 5000))))
+(note (-> (base/rbind :prop prop :se.hat se-hat
+                      (r- prop (r* 2.0 se-hat))
+                      (r+ prop (r* 2.0 se-hat)))
+          (base/round 4)))
+
+(note-void (plot->file (str target-path "/ch1ex13.png") (fn []
+                                                          (g/barplot prop :xlab "digit" :ylab "propotion")
+                                                          (g/abline :h 0.1))))
+(note-hiccup [:image {:src "ch1ex13.png"}])
+
+(note-md "## 1.6 - Packages")
+
+(note-void (r->clj (base/library)))
+
+(note-md "#### Example 1.14 - Using the `bootstrap` package")
+
+(note (try (r 'law)
+           (catch Exception e (.getMessage e))))
+
+(note-md "`(u/install-packages \"bootstrap\")`")
+
+(note-void (r->clj (u/data :package "bootstrap")))
+
+(note-void (require-r '[bootstrap]))
+
+(note r.bootstrap/law)
+(note (base/colMeans 'law))
+(note (stats/cor ($ 'law 'LSAT)
+                 ($ 'law 'GPA)))
+
+
+(note-md "## 1.7 - The R Workspace")
+
+(note (base/ls))
+(note (base/source "data/horsekicks.R"))
+#_(note (base/ls))
+(note-void (base/rm 'v))
+(note-void (base/rm :list ["f" "r"]))
+(note (r.base/ls))
+(note-void (base/rm :list (base/ls)))
+
+(note-md "## 1.8 - Options and Resources")
+
+(note base/pi)
+(note (base/round 'pi 5))
+(note (base/options :digits 4))
+(note (r 'pi))
+
+(note ($ (base/options) 'width))
+(note (base/options :width 60))
+(note (base/getOption "width"))
+
+(note (g/par :ask false))
+
+(note-md "Revert options")
+(note-void (base/options :width 120 :digits 8))
+
+(note-md "### Excercise 1.1 - Normal percentiles")
+
+(note (stats/qnorm 0.95))
+(note (stats/qnorm [0.25 0.5 0.75]))
+
+(note-md "### Excercise 1.2 - Chi-square density curve")
+
+(note-void (plot->file (str target-path "/ex12.png") #(g/curve '(dchisq x :df 1))))
+(note-hiccup [:image {:src "ex12.png"}])
+
+(note-md "### Excercise 1.3 - Gamma densities")
+
+(note-void (plot->file (str target-path "/ex13.png") (fn []
+                                                       (g/curve '(dgamma x :shape 1 :rate 1) :from 0 :to 10)
+                                                       (g/curve '(dgamma x :shape 2 :rate 1) :add true)
+                                                       (g/curve '(dgamma x :shape 3 :rate 1) :add true))))
+(note-hiccup [:image {:src "ex13.png"}])
+
+(note-md "### Excercise 1.4 - Binomial probabilities")
+
+(note (defn binomial [p n k]
+        (* (first (r->clj (base/choose n k)))
+           (Math/pow p k)
+           (Math/pow (- 1.0 p) (- n k)))))
+
+(note (map (partial binomial 1/3 12) (range 13)))
+
+(note (r->clj (stats/dbinom (range 13) 12 1/3)))
+
+(note-md "### Excercise 1.5 - Binomial CDF")
+
+(note (-> (colon 0 12)
+          (stats/dbinom 12 1/3)
+          base/cumsum))
+
+(note (stats/pbinom (colon 0 12) 12 1/3))
+
+(note (r- 1.0 (stats/pbinom 7 12 1/3)))
+
+(note-md "### Excercise 1.6 - Presidents’ heights")
+
+(note-void (plot->file (str target-path "/ex16.png") #(g/plot opponent winner)))
+(note-hiccup [:image {:src "ex16.png"}])
+
+(note-md "### Excercise 1.7 - Simulated \"horsekicks\" data")
+
+(note-void (def poisson-1e3 (stats/rpois 1000 :lambda 0.61)))
+(note-void (def poisson-1e4 (stats/rpois 10000 :lambda 0.61)))
+
+(note-md "Frequencies, means and variances")
+
+(note (base/table poisson-1e3))
+(note (base/table poisson-1e4))
+(note (base/mean poisson-1e3))
+(note (base/mean poisson-1e4))
+(note (stats/var poisson-1e3))
+(note (stats/var poisson-1e4))
+
+(note-md "Density comparison")
+
+(note (let [t1 (base/as-double (rdiv (base/table poisson-1e3) 1000))
+            t2 (base/as-double (rdiv (base/table poisson-1e4) 10000))
+            t (stats/dpois (range 6) :lambda 0.61)]
+        {:theoretical t :simulated-1e3 t1 :simulated-1e4 t2}))
+
+(note-md "### Excercise 1.8 - `horsekicks`, continued")
+
+(note (def simulated-cdf (-> poisson-1e4
+                             base/table
+                             (rdiv 10000)
+                             base/cumsum
+                             (bra (colon 0 5)))))
+(note (def poisson-cdf (stats/ppois (colon 0 4) 0.61)))
+
+(note (base/matrix (base/c simulated-cdf poisson-cdf) :ncol 2))
+
+(note-md "### Excercise 1.9 - Custom standard deviation function")
+
+(note (def sd-n (r ['function '[x] ['sqrt [var-n 'x]]])))
+(note (sd-n temps))
+
+(note-md "### Excercise 1.10 - Euclidean norm function")
+
+(note (def norm (r '(function [x] (sum (* x x))))))
+(note (norm [0 0 0 1]))
+(note (norm [2 5 2 4]))
+
+(note-md "### Excercise 1.11 - Numerical integration")
+
+(note (def-r fx (r ['function '[x] [(symbol "/")
+                                    '(exp (* -1 (* x x)))
+                                    '(+ 1 (* x x))]])))
+
+(note-void (plot->file (str target-path "/ex111.png") #(g/curve 'fx :from 0 :to 10)))
+(note-hiccup [:image {:src "ex111.png"}])
+
+;; should be ##Inf
+(note (stats/integrate 'fx :lower 0 :upper "INF"))
+
+
+(note-md "### Excercise 1.12 - Bivariate normal")
+
+(note (def x (-> (stats/rnorm 20)
+                 (base/matrix 10 2))))
+
+(note (base/apply x :MARGIN 1 :FUN norm))
+
+(note-md "### Excercise 1.13 - `lunatics` data")
+
+(note (base/summary lunatics1))
+
+(note-md "### Excercise 1.14 - Tearing factor of paper")
+
+(note (let [input [[35.0 112 119 117 113]
+                   [49.5 108 99 112 118]
+                   [70.0 120 106 102 109]
+                   [99.0 110 101 99 104]
+                   [140.0 100 102 96 101]]
+            data (mapcat (fn [[p & tf]]
+                           (map vector (repeat 4 p) tf)) input)]
+        (base/data-frame :pressure (map first data)
+                         :tearfactor (map second data))))
+
+(note-md "### Excercise 1.15 - Vectorized operations")
+
+(note (let [x (colon 1 8)
+            n (colon 1 2)]
+        (r+ x n)))
+
+(note (let [x (colon 1 8)
+            n (colon 1 3)]
+        (r+ x n)))
 
 (note/render-this-ns!)
 
 #_(r/discard-all-sessions)
+
