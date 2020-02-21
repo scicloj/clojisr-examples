@@ -41,7 +41,7 @@
 (note-md "Options")
 (note-void (base/options :width 120 :digits 7))
 
-(note-md :Chapter-1 "## Chapter 1 - Introduction")
+(note-md :Chapter-1---Introduction "## Chapter 1 - Introduction")
 
 (note-md "### 1.1.1 - Preliminaries")
 
@@ -441,6 +441,7 @@
 (note-md "Revert options")
 (note-void (base/options :width 120 :digits 8))
 
+(note-md "## Excercises")
 (note-md "### Excercise 1.1 - Normal percentiles")
 
 (note (stats/qnorm 0.95))
@@ -501,10 +502,11 @@
 
 (note-md "Density comparison")
 
-(note (let [t1 (base/as-double (rdiv (base/table poisson-1e3) 1000))
-            t2 (base/as-double (rdiv (base/table poisson-1e4) 10000))
-            t (stats/dpois (range 6) :lambda 0.61)]
-        {:theoretical t :simulated-1e3 t1 :simulated-1e4 t2}))
+(note (let [sel (colon 0 5)
+            t1 (bra (base/as-double (rdiv (base/table poisson-1e3) 1000)) sel)
+            t2 (bra (base/as-double (rdiv (base/table poisson-1e4) 10000)) sel)
+            t (stats/dpois (range 5) :lambda 0.61)]
+        (base/data-frame :theoretical t :simulated1e3 t1 :simulated1e4 t2)))
 
 (note-md "### Excercise 1.8 - `horsekicks`, continued")
 
@@ -573,6 +575,284 @@
 (note (let [x (colon 1 8)
             n (colon 1 3)]
         (r+ x n)))
+
+(note-md :Chapter-2---Quantitative-Data "# Chapter 2 - Quantitative Data")
+
+(note-md "## 2.2 -  Bivariate Data: Two Quantitative Variables")
+(note-md "### 2.2.1 - Exploring the data")
+(note-md "#### Example 2.1 - `mammals`")
+
+
+(note (u/head r.MASS/mammals))
+(note (base/is-matrix 'mammals))
+(note (base/is-data-frame 'mammals))
+
+(note (base/summary 'mammals))
+
+(note-void (plot->file (str target-path "/ex21.png") #(g/boxplot r.MASS/mammals)))
+(note-hiccup [:image {:src "ex21.png"}])
+
+(note-void (plot->file (str target-path "/ex21b.png") #(g/plot r.MASS/mammals)))
+(note-hiccup [:image {:src "ex21b.png"}])
+
+(note-void (plot->file (str target-path "/ex21c.png") #(g/plot (base/log ($ 'mammals 'body))
+                                                               (base/log ($ 'mammals 'brain))
+                                                               :xlab "log(body)"
+                                                               :ylab "log(brain)")))
+(note-hiccup [:image {:src "ex21c.png"}])
+
+(note (base/summary (base/log 'mammals)))
+
+(note-void (plot->file (str target-path "/ex21d.png") #(g/boxplot (base/log r.MASS/mammals)
+                                                                  :names ["log(body)" "log(brain)"])))
+(note-hiccup [:image {:src "ex21d.png"}])
+
+(note-md "### 2.2.2 - Correlation and regression line")
+
+(note (stats/cor (base/log 'mammals)))
+(note (stats/cor (base/log ($ 'mammals 'body))
+                 (base/log ($ 'mammals 'brain))))
+
+(note-void (plot->file (str target-path "/ex21e.png") #(let [x (<- 'x (base/log ($ 'mammals 'body)))
+                                                             y (<- 'y (base/log ($ 'mammals 'brain)))]
+                                                         (g/plot x y
+                                                                 :xlab "log(body)"
+                                                                 :ylab "log(brain)")
+                                                         (g/abline (stats/lm (r "y ~ x"))))))
+(note-hiccup [:image {:src "ex21e.png"}])
+
+(note-md "### 2.2.3 - Analysis of bivariate data by group")
+(note-md "#### Example 2.2 - IQ of twins separated near birth")
+
+(note-void (def twins (u/read-table "data/twinIQ.txt" :header true)))
+(note (u/head twins))
+(note (base/summary twins))
+
+(note-void (plot->file (str target-path "/ex22.png") #(g/boxplot (r "Foster - Biological ~ Social") twins)))
+(note-hiccup [:image {:src "ex22.png"}])
+
+(note (def status (base/as-integer ($ twins 'Social))))
+
+(note-void (plot->file (str target-path "/ex22b.png") (fn []
+                                                        (g/plot (r "Foster ~ Biological")
+                                                                :data twins
+                                                                :pch status :col status)
+                                                        (g/legend "topleft" ["high" "low" "middle"]
+                                                                  :pch (colon 1 3)
+                                                                  :col (colon 1 3)
+                                                                  :inset 0.02)
+                                                        (g/abline 0 1))))
+(note-hiccup [:image {:src "ex22b.png"}])
+
+(note-md "### 2.2.4 - Conditional plots")
+
+(note-void (plot->file (str target-path "/ex22c.png") #(g/coplot (r "Foster ~ Biological | Social") :data twins)))
+(note-hiccup [:image {:src "ex22c.png"}])
+
+(note-void (require-r '[lattice]))
+
+(note-void (plot->file (str target-path "/ex22d.png") (r.lattice/xyplot (r "Foster ~ Biological | Social")
+                                                                        :data twins :pch 20 :col 1)))
+(note-hiccup [:image {:src "ex22d.png"}])
+
+(note-md "## 2.3 - Multivariate Data: Several Quantitative Variables")
+(note-md "#### Example 2.3 - Brain size and intelligence")
+
+(note-void (def brain (u/read-table "data/brainsize.txt" :header true)))
+(note (base/summary brain))
+
+(note (base/mean ($ brain 'Weight)))
+(note (base/mean ($ brain 'Weight) :na.rm true))
+(note (base/by :data (bra brain (r/empty-symbol) -1)
+               :INDICES ($ brain 'Gender)
+               :FUN base/colMeans
+               :na.rm true))
+
+(note-void (base/attach brain))
+
+(note-void (plot->file (str target-path "/ex23.png") (fn [] (let [gender (base/as-integer 'Gender)]
+                                                             (g/plot 'Weight 'MRI_Count
+                                                                     :pch gender :col gender)
+                                                             (g/legend "topleft" ["Female" "Male"]
+                                                                       :pch (colon 1 2)
+                                                                       :col (colon 1 2)
+                                                                       :inset 0.02)))))
+(note-hiccup [:image {:src "ex23.png"}])
+
+(note-void (plot->file (str target-path "/ex23b.png") #(g/pairs (bra brain (r/empty-symbol) (colon 2 7)))))
+(note-hiccup [:image {:src "ex23b.png"}])
+
+(note (-> brain
+          (bra (r/empty-symbol) (colon 2 7))
+          (stats/cor)
+          (base/round 2)))
+
+(note (-> brain
+          (bra (r/empty-symbol) (colon 2 7))
+          (stats/cor :use "pairwise.complete.obs")
+          (base/round 2)))
+
+(note (def mri (rdiv 'MRI_Count 'Weight)))
+
+(note (stats/cor 'FSIQ mri :use "pairwise.complete.obs"))
+
+(note (stats/cor-test 'FSIQ 'MRI_Count))
+(note (-> (stats/cor-test 'FSIQ mri)
+          r->clj
+          :p.value))
+
+(note-md "### 2.3.5 - Identifying missing values")
+
+(note (base/which (base/is-na brain) :arr.ind true))
+(note (bra brain [2 21] (r/empty-symbol)))
+
+(note (let [mw (base/mean ($ brain 'Weight) :na.rm true)
+            mh (base/mean ($ brain 'Height) :na.rm true)]
+        (-> brain
+            (bra<- 2 5 mw)
+            (bra<- 21 (colon 5 6) (base/c mw mh))
+            (bra [2 21] (r/empty-symbol)))))
+
+(note-md "## 2.4 - Time Series Data")
+(note-md "#### Example 2.4 - New Haven temperatures")
+
+(note nhtemp)
+
+(note-void (plot->file (str target-path "/ex24.png") #(g/plot nhtemp)))
+(note-hiccup [:image {:src "ex24.png"}])
+
+(note-void (plot->file (str target-path "/ex24b.png") (fn []
+                                                        (g/plot nhtemp :ylab "Mean annual temperatures")
+                                                        (g/abline :h (base/mean nhtemp))
+                                                        (g/lines (stats/lowess nhtemp)))))
+(note-hiccup [:image {:src "ex24b.png"}])
+
+(note (def d (base/diff nhtemp)))
+
+(note-void (plot->file (str target-path "/ex24c.png") (fn []
+                                                        (g/plot d :ylab "First differences of mean annual temperatures")
+                                                        (g/abline :h 0 :lty 3)
+                                                        (g/lines (stats/lowess d)))))
+(note-hiccup [:image {:src "ex24c.png"}])
+
+(note-md "## 2.5 - Integer Data: Draft Lottery")
+
+(note-md "#### Example 2.5 - The 1970 Draft Lottery Data")
+
+(note-void (def draftnums (u/read-table "data/draft-lottery.txt" :header true)))
+(note (base/names draftnums))
+(note (bra ($ draftnums 'Jan) 15))
+(note (def months (bra draftnums (colon 2 13))))
+(note (def medians (base/sapply months stats/median :na.rm true)))
+
+(note-void (plot->file (str target-path "/ex25.png") #(g/plot medians :type "b" :xlab "month number")))
+(note-hiccup [:image {:src "ex25.png"}])
+
+(note-void (plot->file (str target-path "/ex25b.png") #(g/boxplot months)))
+(note-hiccup [:image {:src "ex25b.png"}])
+
+(note-md "## 2.6 - Sample Means and the Central Limit Theorem")
+(note-md "#### Example 2.6 - Sample means")
+
+(note (base/colMeans randu))
+(note (stats/var randu))
+(note (-> randu stats/var base/diag))
+
+(note-void (plot->file (str target-path "/ex26.jpg") (r.lattice/cloud (r "z ~ x + y") :data randu)))
+(note-hiccup [:image {:src "ex26.jpg"}])
+
+(note-void (def means (base/apply randu :MARGIN 1 :FUN base/mean)))
+(note-void (def means (base/rowMeans randu)))
+
+(note-void (plot->file (str target-path "/ex26b.png") #(g/hist means)))
+(note-hiccup [:image {:src "ex26b.png"}])
+
+(note-void (plot->file (str target-path "/ex26c.png") #(g/hist means :prob true)))
+(note-hiccup [:image {:src "ex26c.png"}])
+
+(note-void (plot->file (str target-path "/ex26d.png") #(g/plot (stats/density means))))
+(note-hiccup [:image {:src "ex26d.png"}])
+
+(note-void (plot->file (str target-path "/ex26e.png") (fn []
+                                                        (r.MASS/truehist means)
+                                                        (g/curve '(dnorm x 1/2 :sd (sqrt 1/36)) :add true))))
+(note-hiccup [:image {:src "ex26e.png"}])
+
+(note-void (plot->file (str target-path "/ex26f.png") (fn []
+                                                        (stats/qqnorm means)
+                                                        (stats/qqline means))))
+(note-hiccup [:image {:src "ex26f.png"}])
+
+(note-md "## 2.7 - Special Topics")
+(note-md "### 2.7.1 - Adding a new variable")
+(note-md "#### Example 2.7 - `mammals`, cont.")
+
+(note (def m (stats/median ($ r.MASS/mammals 'body))))
+(note-void (def mammals ($<- r.MASS/mammals 'size (base/ifelse (r/r>= ($ r.MASS/mammals 'body) m)
+                                                               "large"
+                                                               "small"))))
+(note (u/head mammals))
+(note (base/subset mammals '(== size "large")))
+
+(note-md "### 2.7.2 - Which observation is the maximum?")
+
+(note (base/which (r/r> ($ mammals 'body) 2000)))
+(note (bra mammals [19 33] (r/empty-symbol)))
+(note (base/max ($ mammals 'body)))
+(note (base/which-max ($ mammals 'body)))
+(note (bra mammals 33 (r/empty-symbol)))
+(note (base/which-min ($ mammals 'body)))
+(note (bra mammals 14 (r/empty-symbol)))
+
+(note-md "### 2.7.3 - Sorting a data frame")
+(note-md "#### Example 2.8 - Sorting mammals")
+
+(note (def x (bra mammals (colon 1 5) (r/empty-symbol))))
+(note (def o (base/order ($ x 'body))))
+(note (bra x o (r/empty-symbol)))
+
+(note (let [o (base/order ($ mammals 'body))
+            sorted-data (bra mammals o (r/empty-symbol))]
+        (u/tail sorted-data 3)))
+
+(note-md "### 2.7.4 - Distances between points")
+(note-md "#### Example 2.9 - Distances between points")
+
+(note (def x (bra r.MASS/mammals (colon 1 5) (r/empty-symbol))))
+(note (stats/dist x))
+(note (-> x stats/dist base/as-matrix))
+
+(note (def y (base/log (bra r.MASS/mammals
+                            ["Grey wolf", "Cow", "Human"]
+                            (r/empty-symbol)))))
+
+(note-void (plot->file (str target-path "/ex29.png") (fn []
+                                                       (g/plot (base/log ($ r.MASS/mammals 'body))
+                                                               (base/log ($ r.MASS/mammals 'brain))
+                                                               :xlab "log(body)" :ylab "log(brain)")
+                                                       (g/polygon y)
+                                                       (g/text y (base/rownames y) :adj [1.0 0.5]))))
+(note-hiccup [:image {:src "ex29.png"}])
+
+(note (stats/dist y))
+
+(note-md "### 2.7.5 - Quick look at cluster analysis")
+(note-md "#### Example 2.10 - Cluster analysis of distances")
+
+(note (def h1 (-> r.MASS/mammals base/log stats/dist (stats/hclust :method "complete"))))
+
+(note (def big (base/subset r.MASS/mammals :subset '(> body (median body)))))
+
+(note (def h2 (-> big base/log stats/dist (stats/hclust :method "complete"))))
+
+(note-void (plot->file (str target-path "/ex210.png") #(g/plot h2)))
+(note-hiccup [:image {:src "ex210.png"}])
+
+(note (u/head ($ h1 'merge)))
+(note (bra (base/rownames r.MASS/mammals) [22 28]))
+(note (bra (base/log r.MASS/mammals) [22 28] (r/empty-symbol)))
+
+(note-md "## Exercises")
 
 #_(r/discard-all-sessions)
 
