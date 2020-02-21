@@ -1,11 +1,14 @@
 (ns clojisr-examples.rmarkdown
-  (:require [notespace.v1.note :as note :refer [note note-md note-as-md note-hiccup note-as-hiccup note-void]]))
+  (:require [notespace.v2.note :as note :refer [note note-md note-as-md note-hiccup note-as-hiccup note-void]]
+            [notespace.v2.live-reload]))
 
 (note-md "This document shows the potential of generating [R Markdown](https://rmarkdown.rstudio.com) from Clojure [Hiccup](https://github.com/weavejester/hiccup), while binding R data to values passed from Clojure.")
 
 (note-void
  (require '[tech.ml.dataset :as dataset]
-          '[clojisr.v1.applications.rmarkdown :refer [hiccup->rmd render-rmd]]))
+          '[clojisr.v1.applications.rmarkdown :refer [hiccup->rmd render-rmd]]
+          '[clojisr.v1.r :as r])
+ (r/discard-all-sessions))
 
 (note-md "We create some random data.
 
@@ -27,7 +30,6 @@ We convert it to R Markdown, taking care of the code block, and then we render t
     ;; A hiccup structure with a special block of R-as-EDN code.
     ;; Note that it expects some x, y in its environment.
     [:body
-     {:style "background-color:#aaaaaa"}
      [:div
       [:h1 "hi!"]
       '[:r-forms
@@ -58,7 +60,6 @@ converted to an R data.frame.")
     ;; This time, our R-as-EDN code expects our data as a dataframe
     ;; in the environment.
     [:body
-     {:style "background-color:#aaaaaa"}
      [:div
       [:h1 "hi!"]
       '[:r-forms
@@ -91,7 +92,6 @@ with a genrateted Hiccup structure, containing a sequence of code blocks.")
                    :y ys
                    :z zs})}]
    (-> [:body
-        {:style "background-color:#aaaaaa"}
         (into
          [:div]
          (for [n (->> (range 3)
@@ -116,5 +116,4 @@ with a genrateted Hiccup structure, containing a sequence of code blocks.")
          [:div html])))))
 
 
-(note/render-this-ns!)
 

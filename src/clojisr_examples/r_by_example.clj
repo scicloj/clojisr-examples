@@ -1,23 +1,23 @@
 (ns clojisr-examples.r-by-example
-  (:require [notespace.v1.note :as note
-             :refer [note note-void note-md note-as-md note-hiccup note-as-hiccup]]))
+  (:require [notespace.v2.note :as note
+             :refer [note note-void note-md note-as-md note-hiccup note-as-hiccup check]]
+            [notespace.v2.live-reload]
+            [clojisr.v1.r :as r]))
 
 (note-md "# 'R by Example' by Jim Albert and Maria Rizzo - read-along")
 
 (note-md "Code from the book ported to `clojisr` library. Read the book and run a code in Clojure.")
 (note-md "Data: http://personal.bgsu.edu/~mrizzo/Rx/Rx-data/")
 
-(note-void :Setup)
-
-(note-md "## Setup")
+(note-md :Setup "## Setup")
 
 (note-md "Imports from `clojisr` library.")
 
 (note-void (require '[clojisr.v1.r :as r :refer [r r->clj clj->r r+ colon bra bra<-]]
                     '[clojisr.v1.require :refer [require-r]]
                     '[clojisr.v1.applications.plotting :refer [plot->file]]
-                    '[tech.ml.dataset :as dataset]
-                    '[notespace.v1.util :refer [check]]))
+                    '[tech.ml.dataset :as dataset])
+           (r/discard-all-sessions))
 
 (note-md "Import basic R packages.")
 
@@ -41,9 +41,7 @@
 (note-md "Options")
 (note-void (base/options :width 120 :digits 7))
 
-(note-void :Chapter-1)
-
-(note-md "## Chapter 1 - Introduction")
+(note-md :Chapter-1 "## Chapter 1 - Introduction")
 
 (note-md "### 1.1.1 - Preliminaries")
 
@@ -145,7 +143,7 @@
           (rdiv 16)
           (r* 100)))
 
-(def target-path (second (re-find #"(.*)/[^/]*" (notespace.v1.note/ns->out-filename *ns*))))
+(def target-path (second (re-find #"(.*)/[^/]*" (notespace.v2.note/ns->out-filename *ns*))))
 
 (note-void (plot->file (str target-path "/ch1ex2.png") #(g/barplot (base/rev difference)
                                                                    :xlab "Election years 1948 to 2008",
@@ -575,8 +573,6 @@
 (note (let [x (colon 1 8)
             n (colon 1 3)]
         (r+ x n)))
-
-(note/render-this-ns!)
 
 #_(r/discard-all-sessions)
 
