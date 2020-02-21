@@ -761,7 +761,7 @@
 (note (stats/var randu))
 (note (-> randu stats/var base/diag))
 
-(note-void (plot->file (str target-path "/ex26.jpg") (r.lattice/cloud (r "z ~ x + y") :data randu)))
+(note-void (plot->file (str target-path "/ex26.jpg") (r.lattice/cloud (r "z ~ x + y") :data randu) :quality 85))
 (note-hiccup [:image {:src "ex26.jpg"}])
 
 (note-void (def means (base/apply randu :MARGIN 1 :FUN base/mean)))
