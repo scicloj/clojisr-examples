@@ -21,8 +21,8 @@ We convert it to R Markdown, taking care of the code block, and then we render t
        xs    (repeatedly 1000 rand)
        ;; Create y as x plus noise.
        ys    (map +
-                 xs
-                 (repeatedly rand))
+                  xs
+                  (repeatedly rand))
        ;; Hold them together
        data {:x xs
              :y ys}]
@@ -33,8 +33,8 @@ We convert it to R Markdown, taking care of the code block, and then we render t
      [:div
       [:h1 "hi!"]
       '[:r-forms
-       [library ggplot2]
-       [qplot x y]]]]
+        [library ggplot2]
+        [qplot x y]]]]
     ;; Convert it to R Markdown, taking care of the code block.
     hiccup->rmd
     ;; Render the R Markdown to an html file, with our data added to
@@ -79,11 +79,11 @@ with a genrateted Hiccup structure, containing a sequence of code blocks.")
  ;; containing a sequence of code blocks.
  (let [xs   (repeatedly 9999 rand)
        ys    (->> xs
-                 (map (fn [x]
-                        (+ (* x
-                              (Math/sin (* 99 x))
-                              (Math/tan x))
-                           (rand)))))
+                  (map (fn [x]
+                         (+ (* x
+                               (Math/sin (* 99 x))
+                               (Math/tan x))
+                            (rand)))))
        zs    (->> xs
                   (map (fn [x]
                          (* x (Math/cos (* 9 x))))))
@@ -113,7 +113,7 @@ with a genrateted Hiccup structure, containing a sequence of code blocks.")
        (render-rmd data)
        slurp
        ((fn [html]
-         [:div html])))))
+          [:div html])))))
 
 
-
+#_(notespace.v2.note/compute-this-notespace!)

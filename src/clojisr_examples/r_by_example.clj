@@ -1,8 +1,6 @@
 (ns clojisr-examples.r-by-example
   (:require [notespace.v2.note :as note
-             :refer [note note-void note-md note-as-md note-hiccup note-as-hiccup check]]
-            [notespace.v2.live-reload]
-            [clojisr.v1.r :as r]))
+             :refer [note note-void note-md note-as-md note-hiccup note-as-hiccup check]]))
 
 (note-md "# 'R by Example' by Jim Albert and Maria Rizzo - read-along")
 
@@ -16,8 +14,7 @@
 (note-void (require '[clojisr.v1.r :as r :refer [r r->clj clj->r r+ colon bra bra<-]]
                     '[clojisr.v1.require :refer [require-r]]
                     '[clojisr.v1.applications.plotting :refer [plot->file]]
-                    '[tech.ml.dataset :as dataset])
-           (r/discard-all-sessions))
+                    '[tech.ml.dataset :as dataset]))
 
 (note-md "Import basic R packages.")
 
@@ -419,11 +416,13 @@
 
 (note (base/ls))
 (note (base/source "data/horsekicks.R"))
-#_(note (base/ls))
+(note (base/ls))
 (note-void (base/rm 'v))
+(note (base/ls))
 (note-void (base/rm :list ["f" "r"]))
-(note (r.base/ls))
+(note (base/ls))
 (note-void (base/rm :list (base/ls)))
+(note (base/ls))
 
 (note-md "## 1.8 - Options and Resources")
 
@@ -853,6 +852,8 @@
 (note (bra (base/log r.MASS/mammals) [22 28] (r/empty-symbol)))
 
 (note-md "## Exercises")
+
+(notespace.v2.note/compute-this-notespace!)
 
 #_(r/discard-all-sessions)
 
