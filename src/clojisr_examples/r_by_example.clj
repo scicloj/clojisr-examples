@@ -1,6 +1,18 @@
 (ns clojisr-examples.r-by-example
   (:require [notespace.v2.note :as note
-             :refer [note note-void note-md note-as-md note-hiccup note-as-hiccup check]]))
+             :refer [note note-void note-md note-as-md note-hiccup note-as-hiccup]]))
+
+(note/defkind note-def :def {:render-src?    true
+                             :value-renderer (comp notespace.v2.view/value->hiccup var-get)})
+
+(def target-path (notespace.v2.note/ns->out-dir *ns*))
+
+(defmacro plot
+  [fname & fs]
+  (let [p (str target-path fname)]
+    `(note-as-hiccup
+      (plot->file ~p (fn [] ~@fs))
+      [:image {:src ~fname}])))
 
 (note-md "# 'R by Example' by Jim Albert and Maria Rizzo - read-along")
 
@@ -14,7 +26,8 @@
 (note-void (require '[clojisr.v1.r :as r :refer [r r->clj clj->r r+ colon bra bra<-]]
                     '[clojisr.v1.require :refer [require-r]]
                     '[clojisr.v1.applications.plotting :refer [plot->file]]
-                    '[tech.ml.dataset :as dataset]))
+                    '[tech.ml.dataset :as dataset]
+                    '[notespace.v2.note :refer [check]]))
 
 (note-md "Import basic R packages.")
 
@@ -30,10 +43,6 @@
   `(do
      (def ~name ~@r)
      (<- '~(symbol name) ~name)))
-
-(note-md "Ensure R working folder is the same as Clojure.")
-
-(note-void (base/setwd (.getAbsolutePath (java.io.File. "."))))
 
 (note-md "Options")
 (note-void (base/options :width 120 :digits 7))
@@ -61,7 +70,7 @@
 
 (note-md "We will use `def-r` helper to define the same thing in Clojure and R.")
 
-(note (def-r x [109 65 22 3 1]))
+(note-void (def-r x [109 65 22 3 1]))
 (note (check = x (r->clj (r 'x))))
 
 (note-md "Below `y` on Clojure and R sides represent the same R object. `stats/rpois` is R function.")
@@ -77,7 +86,7 @@
 
 (note-md "#### Example 1.1 - Temperature data")
 
-(note (def temps [51.9 51.8 51.9 53]))
+(note-void (def temps [51.9 51.8 51.9 53]))
 
 (note (r ['- temps 32]))
 (note (r ['* 5/9 ['- temps 32]]))
@@ -90,7 +99,7 @@
 (note (r- temps 32))
 (note (r* 5/9 (r- temps 32)))
 
-(note (def CT [48 48.2 48 48.7]))
+(note-void (def CT [48 48.2 48 48.7]))
 
 (note (r- temps CT))
 
@@ -103,51 +112,49 @@
             l2 (count winner)]
         (check = l1 l2)))
 
-(note (def year (base/seq :from 2008 :to 1948 :by -4)))
+(note-def (def year (base/seq :from 2008 :to 1948 :by -4)))
 
 (note-md "or")
 
-(note (def year (base/seq 2008 1948 -4)))
+(note-def (def year (base/seq 2008 1948 -4)))
 
 (note-md "Modifying data")
 
-(note (def winner-var1 (-> winner
-                           (bra<- 4 189)
-                           (bra<- 5 189))))
+(note-def (def winner-var1 (-> winner
+                               (bra<- 4 189)
+                               (bra<- 5 189))))
 
-(note (def winner-var2 (bra<- winner (colon 4 5) 189)))
+(note-def (def winner-var2 (bra<- winner (colon 4 5) 189)))
 
 (note (check = (r->clj winner-var1) (r->clj winner-var2)))
 
-(note (def winner winner-var1))
+(note-void (def winner winner-var1))
 
 (note (base/mean winner))
 (note (base/mean opponent))
 
-(note (def difference (r- winner opponent)))
+(note-def (def difference (r- winner opponent)))
 
 (note-md "We have to explicitly provide column names.")
 
 (note (base/data-frame :year year :winner winner :opponent opponent :difference difference))
 
-(note (def taller-won (r ['> winner opponent])))
+(note-def (def taller-won (r ['> winner opponent])))
 
 (note (base/table taller-won))
 
-(note (def rdiv (r "`/`")))
+(note-void (def rdiv (r "`/`")))
 (note (-> taller-won
           (base/table)
           (rdiv 16)
           (r* 100)))
 
-(def target-path (second (re-find #"(.*)/[^/]*" (notespace.v2.note/ns->out-filename *ns*))))
-
-(note-void (plot->file (str target-path "/ch1ex2.png") #(g/barplot (base/rev difference)
-                                                                   :xlab "Election years 1948 to 2008",
-                                                                   :ylab "Height difference in cm")))
+(note-void (plot->file (str target-path "ch1ex2.png") #(g/barplot (base/rev difference)
+                                                                  :xlab "Election years 1948 to 2008",
+                                                                  :ylab "Height difference in cm")))
 (note-hiccup [:image {:src "ch1ex2.png"}])
 
-(note-void (plot->file (str target-path "/ch1ex2b.png") #(g/plot winner opponent)))
+(note-void (plot->file (str target-path "ch1ex2b.png") #(g/plot winner opponent)))
 (note-hiccup [:image {:src "ch1ex2b.png"}])
 
 (note-md "#### Example 1.3 - horsekicks")
@@ -155,28 +162,28 @@
 (note-void (def k [0 1 2 3 4])
            (def x [109 65 22 3 1]))
 
-(note-void (plot->file (str target-path "/ch1ex3.png") #(g/barplot x :names.arg k)))
+(note-void (plot->file (str target-path "ch1ex3.png") #(g/barplot x :names.arg k)))
 (note-hiccup [:image {:src "ch1ex3.png"}])
 
-(note (def rpow (r "`^`")))
+(note-void (def rpow (r "`^`")))
 
-(note (def p (rdiv x (base/sum x))))
-(note (def rr (base/sum (r* p k))))
-(note (def v (-> (r- k rr)
-                 (rpow 2)
-                 (r* x)
-                 (base/sum)
-                 (rdiv 199))))
+(note-def (def p (rdiv x (base/sum x))))
+(note-def (def rr (base/sum (r* p k))))
+(note-def (def v (-> (r- k rr)
+                     (rpow 2)
+                     (r* x)
+                     (base/sum)
+                     (rdiv 199))))
 
-(note (def f1 (-> (r- rr)
-                  (base/exp)
-                  (r* (rpow rr k))
-                  (rdiv (base/factorial k))
-                  (r->clj))))
+(note-def (def f1 (-> (r- rr)
+                      (base/exp)
+                      (r* (rpow rr k))
+                      (rdiv (base/factorial k))
+                      (r->clj))))
 
-(note (def f2 (r->clj (stats/dpois k rr))))
+(note-def (def f2 (r->clj (stats/dpois k rr))))
 
-(note (def f f2))
+(note-void (def f f2))
 
 (note-md "Expected counts")
 (note (r->clj (base/floor (r* 200 f))))
@@ -189,20 +196,20 @@
 
 (note-md "#### Example 1.4 - Simulated horsekick data")
 
-(note (def y (stats/rpois 200 :lambda 0.61)))
+(note-def (def y (stats/rpois 200 :lambda 0.61)))
 
 (note-md "Table of sample frequencies")
-(note (def kicks (base/table y)))
+(note-def (def kicks (base/table y)))
 
 (note-md "Sample proportions")
 (note (rdiv kicks 200))
 
-(note (def theoretical (-> kicks
-                           r->clj
-                           count
-                           range
-                           (stats/dpois :lambda 0.61))))
-(note (def sample (rdiv kicks 200)))
+(note-def (def theoretical (-> kicks
+                               r->clj
+                               count
+                               range
+                               (stats/dpois :lambda 0.61))))
+(note-def (def sample (rdiv kicks 200)))
 (note (base/cbind :theoretical  theoretical :sample sample))
 
 (note (base/mean y))
@@ -217,25 +224,25 @@
 (note-md "Two ways to define functions.")
 
 (note-md "R string")
-(note (def f1 (r "function(...) {1.0}")))
+(note-def (def f1 (r "function(...) {1.0}")))
 (note-md "Clojure style")
-(note (def f2 (r '(function [...] 1.0))))
+(note-def (def f2 (r '(function [...] 1.0))))
 
 (note (check = (r->clj (f1)) (r->clj (f2))))
 
 (note-md "#### Example 1.5 - function definition")
 
-(note (def var-n (r '(function [x]
-                               (= v (var x))
-                               (= n (NROW x))
-                               (/ (* (- n 1) v) n)))))
+(note-void (def var-n (r '(function [x]
+                                    (= v (var x))
+                                    (= n (NROW x))
+                                    (/ (* (- n 1) v) n)))))
 
 (note (stats/var temps))
 (note (var-n temps))
 
 (note-md "#### Example 1.6 - functions as arguments")
 
-(note (def f (r "function(x, a=1, b=1) x^(a-1) * (1-x)^(b-1)")))
+(note-void (def f (r "function(x, a=1, b=1) x^(a-1) * (1-x)^(b-1)")))
 (note (let [x (base/seq 0 1 0.2)]
         (f x :a 2 :b 2)))
 
@@ -245,7 +252,7 @@
 
 (note-md "#### Example 1.7 - graphing a function using `curve`")
 
-(note-void (plot->file (str target-path "/ch1ex7.png") #(g/curve '(* x (- 1 x))
+(note-void (plot->file (str target-path "ch1ex7.png") #(g/curve '(* x (- 1 x))
                                                                  :from 0 :to 1 :ylab "f(x)")))
 (note-hiccup [:image {:src "ch1ex7.png"}])
 
@@ -254,20 +261,20 @@
 
 (note-md "#### Example 1.8 - Class mobility")
 
-(note (def probs [0.45 0.05 0.01 0.48 0.70 0.50 0.07 0.25 0.49]))
-(note (def P (base/matrix probs :nrow 3 :ncol 3)))
+(note-void (def probs [0.45 0.05 0.01 0.48 0.70 0.50 0.07 0.25 0.49]))
+(note-def (def P (base/matrix probs :nrow 3 :ncol 3)))
 (note-md "Currently matrix is flat array in Clojure")
 (note (r->clj P))
 
-(note (def P (let [names ["lower" "middle" "upper"]]
-               (-> P
-                   (base/rownames<- names)
-                   (base/colnames<- names)))))
+(note-def (def P (let [names ["lower" "middle" "upper"]]
+                   (-> P
+                       (base/rownames<- names)
+                       (base/colnames<- names)))))
 
 (note (base/rowSums P))
 (note (base/apply P :MARGIN 1 :FUN base/sum))
 
-(note (def P2 (base/%*% P P)))
+(note-def (def P2 (base/%*% P P)))
 
 (note (bra P2 1 3))
 (note (bra P2 1 (r/empty-symbol)))
@@ -277,9 +284,9 @@
         P8))
 
 
-(note (def Q (base/matrix [0.45 0.48 0.07
-                           0.05 0.70 0.25
-                           0.01 0.50 0.49] :nrow 3 :ncol 3 :byrow true)))
+(note-def (def Q (base/matrix [0.45 0.48 0.07
+                               0.05 0.70 0.25
+                               0.01 0.50 0.49] :nrow 3 :ncol 3 :byrow true)))
 
 (note-md "## 1.4 - Data Frames")
 
@@ -306,33 +313,33 @@
 (note (bra USArrests "California" (r/empty-symbol)))
 (note ($ USArrests 'Assault))
 
-(note-void (plot->file (str target-path "/ch1ex9.png") #(g/hist ($ USArrests 'Assault))))
+(note-void (plot->file (str target-path "ch1ex9.png") #(g/hist ($ USArrests 'Assault))))
 (note-hiccup [:image {:src "ch1ex9.png"}])
 
 (note (require-r '[MASS]))
 
-(note-void (plot->file (str target-path "/ch1ex9b.png") #(r.MASS/truehist ($ USArrests 'Assault))))
+(note-void (plot->file (str target-path "ch1ex9b.png") #(r.MASS/truehist ($ USArrests 'Assault))))
 (note-hiccup [:image {:src "ch1ex9b.png"}])
 
-(note-void (plot->file (str target-path "/ch1ex9c.png") #(g/hist ($ USArrests 'Assault)
+(note-void (plot->file (str target-path "ch1ex9c.png") #(g/hist ($ USArrests 'Assault)
                                                                  :prob true :breaks "scott")))
 (note-hiccup [:image {:src "ch1ex9c.png"}])
 
 (note-md "Attach creates symbols on the R side, use Clojure symbols (ex. 'Murder) to access them.")
 (note (base/attach USArrests))
 
-(note (def murder-pct (r '(/ (* 100 Murder)
-                             (+ (+ Murder Assault) Rape)))))
+(note-def (def murder-pct (r '(/ (* 100 Murder)
+                                 (+ (+ Murder Assault) Rape)))))
 (note (u/head murder-pct))
 
 #_(note-md "problems with `with`")
 #_(note (base/with USArrests :expr '(= murder-pct (/ (* 100 Murder)
                                                      (+ (+ Murder Assault) Rape)))))
 
-(note-void (plot->file (str target-path "/ch1ex9d.png") #(g/plot 'UrbanPop 'Murder)))
+(note-void (plot->file (str target-path "ch1ex9d.png") #(g/plot 'UrbanPop 'Murder)))
 (note-hiccup [:image {:src "ch1ex9d.png"}])
 
-(note-void (plot->file (str target-path "/ch1ex9e.png") #(g/pairs USArrests)))
+(note-void (plot->file (str target-path "ch1ex9e.png") #(g/pairs USArrests)))
 (note-hiccup [:image {:src "ch1ex9e.png"}])
 
 (note (stats/cor 'UrbanPop 'Murder))
@@ -344,18 +351,18 @@
 
 (note-md "#### Example 1.11 - Data from a textbook")
 
-(note (def y (let [y1 [22 26]
-                   y2 [28 24 29]
-                   y3 [29 32 28]
-                   y4 [23 24]]
-               (concat y1 y2 y3 y4))))
+(note-def (def y (let [y1 [22 26]
+                       y2 [28 24 29]
+                       y3 [29 32 28]
+                       y4 [23 24]]
+                   (concat y1 y2 y3 y4))))
 
-(note (def model (base/c (base/rep "A" 2)
-                         (base/rep "B" 3)
-                         (base/rep "C" 3)
-                         (base/rep "D" 2))))
+(note-def (def model (base/c (base/rep "A" 2)
+                             (base/rep "B" 3)
+                             (base/rep "C" 3)
+                             (base/rep "D" 2))))
 
-(note (def mileages (base/data-frame :y y :model model)))
+(note-def (def mileages (base/data-frame :y y :model model)))
 
 (note-md "### 1.5.2 - Importing data from a text file")
 
@@ -377,16 +384,16 @@
 (note-void (def pidigits (u/read-table "http://www.itl.nist.gov/div898/strd/univ/data/PiDigits.dat" :skip 60)))
 (note (u/head pidigits))
 (note (base/table pidigits))
-(note (def prop (rdiv (base/table pidigits) 5000)))
+(note-def (def prop (rdiv (base/table pidigits) 5000)))
 (note (Math/sqrt (/ (* 0.1 0.9) 5000)))
 (note (base/sqrt (rdiv (r* 0.1 0.9) 5000)))
-(note (def se-hat (base/sqrt (rdiv (r* prop (r- 1.0 prop)) 5000))))
+(note-def (def se-hat (base/sqrt (rdiv (r* prop (r- 1.0 prop)) 5000))))
 (note (-> (base/rbind :prop prop :se.hat se-hat
                       (r- prop (r* 2.0 se-hat))
                       (r+ prop (r* 2.0 se-hat)))
           (base/round 4)))
 
-(note-void (plot->file (str target-path "/ch1ex13.png") (fn []
+(note-void (plot->file (str target-path "ch1ex13.png") (fn []
                                                           (g/barplot prop :xlab "digit" :ylab "propotion")
                                                           (g/abline :h 0.1))))
 (note-hiccup [:image {:src "ch1ex13.png"}])
@@ -448,12 +455,12 @@
 
 (note-md "### Excercise 1.2 - Chi-square density curve")
 
-(note-void (plot->file (str target-path "/ex12.png") #(g/curve '(dchisq x :df 1))))
+(note-void (plot->file (str target-path "ex12.png") #(g/curve '(dchisq x :df 1))))
 (note-hiccup [:image {:src "ex12.png"}])
 
 (note-md "### Excercise 1.3 - Gamma densities")
 
-(note-void (plot->file (str target-path "/ex13.png") (fn []
+(note-void (plot->file (str target-path "ex13.png") (fn []
                                                        (g/curve '(dgamma x :shape 1 :rate 1) :from 0 :to 10)
                                                        (g/curve '(dgamma x :shape 2 :rate 1) :add true)
                                                        (g/curve '(dgamma x :shape 3 :rate 1) :add true))))
@@ -461,10 +468,10 @@
 
 (note-md "### Excercise 1.4 - Binomial probabilities")
 
-(note (defn binomial [p n k]
-        (* (first (r->clj (base/choose n k)))
-           (Math/pow p k)
-           (Math/pow (- 1.0 p) (- n k)))))
+(note-void (defn binomial [p n k]
+             (* (first (r->clj (base/choose n k)))
+                (Math/pow p k)
+                (Math/pow (- 1.0 p) (- n k)))))
 
 (note (map (partial binomial 1/3 12) (range 13)))
 
@@ -482,7 +489,7 @@
 
 (note-md "### Excercise 1.6 - Presidents’ heights")
 
-(note-void (plot->file (str target-path "/ex16.png") #(g/plot opponent winner)))
+(note-void (plot->file (str target-path "ex16.png") #(g/plot opponent winner)))
 (note-hiccup [:image {:src "ex16.png"}])
 
 (note-md "### Excercise 1.7 - Simulated \"horsekicks\" data")
@@ -509,23 +516,23 @@
 
 (note-md "### Excercise 1.8 - `horsekicks`, continued")
 
-(note (def simulated-cdf (-> poisson-1e4
-                             base/table
-                             (rdiv 10000)
-                             base/cumsum
-                             (bra (colon 0 5)))))
-(note (def poisson-cdf (stats/ppois (colon 0 4) 0.61)))
+(note-def (def simulated-cdf (-> poisson-1e4
+                                 base/table
+                                 (rdiv 10000)
+                                 base/cumsum
+                                 (bra (colon 0 5)))))
+(note-def (def poisson-cdf (stats/ppois (colon 0 4) 0.61)))
 
 (note (base/matrix (base/c simulated-cdf poisson-cdf) :ncol 2))
 
 (note-md "### Excercise 1.9 - Custom standard deviation function")
 
-(note (def sd-n (r ['function '[x] ['sqrt [var-n 'x]]])))
+(note-void (def sd-n (r ['function '[x] ['sqrt [var-n 'x]]])))
 (note (sd-n temps))
 
 (note-md "### Excercise 1.10 - Euclidean norm function")
 
-(note (def norm (r '(function [x] (sum (* x x))))))
+(note-void (def norm (r '(function [x] (sum (* x x))))))
 (note (norm [0 0 0 1]))
 (note (norm [2 5 2 4]))
 
@@ -535,7 +542,7 @@
                                     '(exp (* -1 (* x x)))
                                     '(+ 1 (* x x))]])))
 
-(note-void (plot->file (str target-path "/ex111.png") #(g/curve 'fx :from 0 :to 10)))
+(note-void (plot->file (str target-path "ex111.png") #(g/curve 'fx :from 0 :to 10)))
 (note-hiccup [:image {:src "ex111.png"}])
 
 ;; should be ##Inf
@@ -544,8 +551,8 @@
 
 (note-md "### Excercise 1.12 - Bivariate normal")
 
-(note (def x (-> (stats/rnorm 20)
-                 (base/matrix 10 2))))
+(note-def (def x (-> (stats/rnorm 20)
+                     (base/matrix 10 2))))
 
 (note (base/apply x :MARGIN 1 :FUN norm))
 
@@ -588,23 +595,23 @@
 
 (note (base/summary 'mammals))
 
-(note-void (plot->file (str target-path "/ex21.png") #(g/boxplot r.MASS/mammals)))
-(note-hiccup [:image {:src "ex21.png"}])
+(note-void (plot->file (str target-path "ch2ex21.png") #(g/boxplot r.MASS/mammals)))
+(note-hiccup [:image {:src "ch2ex21.png"}])
 
-(note-void (plot->file (str target-path "/ex21b.png") #(g/plot r.MASS/mammals)))
-(note-hiccup [:image {:src "ex21b.png"}])
+(note-void (plot->file (str target-path "ch2ex21b.png") #(g/plot r.MASS/mammals)))
+(note-hiccup [:image {:src "ch2ex21b.png"}])
 
-(note-void (plot->file (str target-path "/ex21c.png") #(g/plot (base/log ($ 'mammals 'body))
-                                                               (base/log ($ 'mammals 'brain))
-                                                               :xlab "log(body)"
-                                                               :ylab "log(brain)")))
-(note-hiccup [:image {:src "ex21c.png"}])
+(note-void (plot->file (str target-path "ch2ex21c.png") #(g/plot (base/log ($ 'mammals 'body))
+                                                                  (base/log ($ 'mammals 'brain))
+                                                                  :xlab "log(body)"
+                                                                  :ylab "log(brain)")))
+(note-hiccup [:image {:src "ch2ex21c.png"}])
 
 (note (base/summary (base/log 'mammals)))
 
-(note-void (plot->file (str target-path "/ex21d.png") #(g/boxplot (base/log r.MASS/mammals)
+(note-void (plot->file (str target-path "ch2ex21d.png") #(g/boxplot (base/log r.MASS/mammals)
                                                                   :names ["log(body)" "log(brain)"])))
-(note-hiccup [:image {:src "ex21d.png"}])
+(note-hiccup [:image {:src "ch2ex21d.png"}])
 
 (note-md "### 2.2.2 - Correlation and regression line")
 
@@ -612,13 +619,13 @@
 (note (stats/cor (base/log ($ 'mammals 'body))
                  (base/log ($ 'mammals 'brain))))
 
-(note-void (plot->file (str target-path "/ex21e.png") #(let [x (<- 'x (base/log ($ 'mammals 'body)))
+(note-void (plot->file (str target-path "ch2ex21e.png") #(let [x (<- 'x (base/log ($ 'mammals 'body)))
                                                              y (<- 'y (base/log ($ 'mammals 'brain)))]
                                                          (g/plot x y
                                                                  :xlab "log(body)"
                                                                  :ylab "log(brain)")
                                                          (g/abline (stats/lm (r "y ~ x"))))))
-(note-hiccup [:image {:src "ex21e.png"}])
+(note-hiccup [:image {:src "ch2ex21e.png"}])
 
 (note-md "### 2.2.3 - Analysis of bivariate data by group")
 (note-md "#### Example 2.2 - IQ of twins separated near birth")
@@ -627,12 +634,12 @@
 (note (u/head twins))
 (note (base/summary twins))
 
-(note-void (plot->file (str target-path "/ex22.png") #(g/boxplot (r "Foster - Biological ~ Social") twins)))
-(note-hiccup [:image {:src "ex22.png"}])
+(note-void (plot->file (str target-path "ch2ex22.png") #(g/boxplot (r "Foster - Biological ~ Social") twins)))
+(note-hiccup [:image {:src "ch2ex22.png"}])
 
-(note (def status (base/as-integer ($ twins 'Social))))
+(note-def (def status (base/as-integer ($ twins 'Social))))
 
-(note-void (plot->file (str target-path "/ex22b.png") (fn []
+(note-void (plot->file (str target-path "ch2ex22b.png") (fn []
                                                         (g/plot (r "Foster ~ Biological")
                                                                 :data twins
                                                                 :pch status :col status)
@@ -641,18 +648,18 @@
                                                                   :col (colon 1 3)
                                                                   :inset 0.02)
                                                         (g/abline 0 1))))
-(note-hiccup [:image {:src "ex22b.png"}])
+(note-hiccup [:image {:src "ch2ex22b.png"}])
 
 (note-md "### 2.2.4 - Conditional plots")
 
-(note-void (plot->file (str target-path "/ex22c.png") #(g/coplot (r "Foster ~ Biological | Social") :data twins)))
-(note-hiccup [:image {:src "ex22c.png"}])
+(note-void (plot->file (str target-path "ch2ex22c.png") #(g/coplot (r "Foster ~ Biological | Social") :data twins)))
+(note-hiccup [:image {:src "ch2ex22c.png"}])
 
 (note-void (require-r '[lattice]))
 
-(note-void (plot->file (str target-path "/ex22d.png") (r.lattice/xyplot (r "Foster ~ Biological | Social")
+(note-void (plot->file (str target-path "ch2ex22d.png") (r.lattice/xyplot (r "Foster ~ Biological | Social")
                                                                         :data twins :pch 20 :col 1)))
-(note-hiccup [:image {:src "ex22d.png"}])
+(note-hiccup [:image {:src "ch2ex22d.png"}])
 
 (note-md "## 2.3 - Multivariate Data: Several Quantitative Variables")
 (note-md "#### Example 2.3 - Brain size and intelligence")
@@ -669,17 +676,17 @@
 
 (note-void (base/attach brain))
 
-(note-void (plot->file (str target-path "/ex23.png") (fn [] (let [gender (base/as-integer 'Gender)]
+(note-void (plot->file (str target-path "ch2ex23.png") (fn [] (let [gender (base/as-integer 'Gender)]
                                                              (g/plot 'Weight 'MRI_Count
                                                                      :pch gender :col gender)
                                                              (g/legend "topleft" ["Female" "Male"]
                                                                        :pch (colon 1 2)
                                                                        :col (colon 1 2)
                                                                        :inset 0.02)))))
-(note-hiccup [:image {:src "ex23.png"}])
+(note-hiccup [:image {:src "ch2ex23.png"}])
 
-(note-void (plot->file (str target-path "/ex23b.png") #(g/pairs (bra brain (r/empty-symbol) (colon 2 7)))))
-(note-hiccup [:image {:src "ex23b.png"}])
+(note-void (plot->file (str target-path "ch2ex23b.png") #(g/pairs (bra brain (r/empty-symbol) (colon 2 7)))))
+(note-hiccup [:image {:src "ch2ex23b.png"}])
 
 (note (-> brain
           (bra (r/empty-symbol) (colon 2 7))
@@ -691,7 +698,7 @@
           (stats/cor :use "pairwise.complete.obs")
           (base/round 2)))
 
-(note (def mri (rdiv 'MRI_Count 'Weight)))
+(note-def (def mri (rdiv 'MRI_Count 'Weight)))
 
 (note (stats/cor 'FSIQ mri :use "pairwise.complete.obs"))
 
@@ -717,22 +724,22 @@
 
 (note nhtemp)
 
-(note-void (plot->file (str target-path "/ex24.png") #(g/plot nhtemp)))
-(note-hiccup [:image {:src "ex24.png"}])
+(note-void (plot->file (str target-path "ch2ex24.png") #(g/plot nhtemp)))
+(note-hiccup [:image {:src "ch2ex24.png"}])
 
-(note-void (plot->file (str target-path "/ex24b.png") (fn []
+(note-void (plot->file (str target-path "ch2ex24b.png") (fn []
                                                         (g/plot nhtemp :ylab "Mean annual temperatures")
                                                         (g/abline :h (base/mean nhtemp))
                                                         (g/lines (stats/lowess nhtemp)))))
-(note-hiccup [:image {:src "ex24b.png"}])
+(note-hiccup [:image {:src "ch2ex24b.png"}])
 
-(note (def d (base/diff nhtemp)))
+(note-def (def d (base/diff nhtemp)))
 
-(note-void (plot->file (str target-path "/ex24c.png") (fn []
+(note-void (plot->file (str target-path "ch2ex24c.png") (fn []
                                                         (g/plot d :ylab "First differences of mean annual temperatures")
                                                         (g/abline :h 0 :lty 3)
                                                         (g/lines (stats/lowess d)))))
-(note-hiccup [:image {:src "ex24c.png"}])
+(note-hiccup [:image {:src "ch2ex24c.png"}])
 
 (note-md "## 2.5 - Integer Data: Draft Lottery")
 
@@ -741,14 +748,14 @@
 (note-void (def draftnums (u/read-table "data/draft-lottery.txt" :header true)))
 (note (base/names draftnums))
 (note (bra ($ draftnums 'Jan) 15))
-(note (def months (bra draftnums (colon 2 13))))
-(note (def medians (base/sapply months stats/median :na.rm true)))
+(note-def (def months (bra draftnums (colon 2 13))))
+(note-def (def medians (base/sapply months stats/median :na.rm true)))
 
-(note-void (plot->file (str target-path "/ex25.png") #(g/plot medians :type "b" :xlab "month number")))
-(note-hiccup [:image {:src "ex25.png"}])
+(note-void (plot->file (str target-path "ch2ex25.png") #(g/plot medians :type "b" :xlab "month number")))
+(note-hiccup [:image {:src "ch2ex25.png"}])
 
-(note-void (plot->file (str target-path "/ex25b.png") #(g/boxplot months)))
-(note-hiccup [:image {:src "ex25b.png"}])
+(note-void (plot->file (str target-path "ch2ex25b.png") #(g/boxplot months)))
+(note-hiccup [:image {:src "ch2ex25b.png"}])
 
 (note-md "## 2.6 - Sample Means and the Central Limit Theorem")
 (note-md "#### Example 2.6 - Sample means")
@@ -757,36 +764,36 @@
 (note (stats/var randu))
 (note (-> randu stats/var base/diag))
 
-(note-void (plot->file (str target-path "/ex26.jpg") (r.lattice/cloud (r "z ~ x + y") :data randu) :quality 85))
-(note-hiccup [:image {:src "ex26.jpg"}])
+(note-void (plot->file (str target-path "ch2ex26.jpg") (r.lattice/cloud (r "z ~ x + y") :data randu) :quality 85))
+(note-hiccup [:image {:src "ch2ex26.jpg"}])
 
 (note-void (def means (base/apply randu :MARGIN 1 :FUN base/mean)))
 (note-void (def means (base/rowMeans randu)))
 
-(note-void (plot->file (str target-path "/ex26b.png") #(g/hist means)))
-(note-hiccup [:image {:src "ex26b.png"}])
+(note-void (plot->file (str target-path "ch2ex26b.png") #(g/hist means)))
+(note-hiccup [:image {:src "ch2ex26b.png"}])
 
-(note-void (plot->file (str target-path "/ex26c.png") #(g/hist means :prob true)))
-(note-hiccup [:image {:src "ex26c.png"}])
+(note-void (plot->file (str target-path "ch2ex26c.png") #(g/hist means :prob true)))
+(note-hiccup [:image {:src "ch2ex26c.png"}])
 
-(note-void (plot->file (str target-path "/ex26d.png") #(g/plot (stats/density means))))
-(note-hiccup [:image {:src "ex26d.png"}])
+(note-void (plot->file (str target-path "ch2ex26d.png") #(g/plot (stats/density means))))
+(note-hiccup [:image {:src "ch2ex26d.png"}])
 
-(note-void (plot->file (str target-path "/ex26e.png") (fn []
-                                                        (r.MASS/truehist means)
-                                                        (g/curve '(dnorm x 1/2 :sd (sqrt 1/36)) :add true))))
-(note-hiccup [:image {:src "ex26e.png"}])
+(note-void (plot->file (str target-path "ch2ex26e.png") (fn []
+                                                          (r.MASS/truehist means)
+                                                          (g/curve '(dnorm x 1/2 :sd (sqrt 1/36)) :add true))))
+(note-hiccup [:image {:src "ch2ex26e.png"}])
 
-(note-void (plot->file (str target-path "/ex26f.png") (fn []
-                                                        (stats/qqnorm means)
-                                                        (stats/qqline means))))
-(note-hiccup [:image {:src "ex26f.png"}])
+(note-void (plot->file (str target-path "ch2ex26f.png") (fn []
+                                                          (stats/qqnorm means)
+                                                          (stats/qqline means))))
+(note-hiccup [:image {:src "ch2ex26f.png"}])
 
 (note-md "## 2.7 - Special Topics")
 (note-md "### 2.7.1 - Adding a new variable")
 (note-md "#### Example 2.7 - `mammals`, cont.")
 
-(note (def m (stats/median ($ r.MASS/mammals 'body))))
+(note-def (def m (stats/median ($ r.MASS/mammals 'body))))
 (note-void (def mammals ($<- r.MASS/mammals 'size (base/ifelse (r/r>= ($ r.MASS/mammals 'body) m)
                                                                "large"
                                                                "small"))))
@@ -806,8 +813,8 @@
 (note-md "### 2.7.3 - Sorting a data frame")
 (note-md "#### Example 2.8 - Sorting mammals")
 
-(note (def x (bra mammals (colon 1 5) (r/empty-symbol))))
-(note (def o (base/order ($ x 'body))))
+(note-def (def x (bra mammals (colon 1 5) (r/empty-symbol))))
+(note-def (def o (base/order ($ x 'body))))
 (note (bra x o (r/empty-symbol)))
 
 (note (let [o (base/order ($ mammals 'body))
@@ -817,41 +824,81 @@
 (note-md "### 2.7.4 - Distances between points")
 (note-md "#### Example 2.9 - Distances between points")
 
-(note (def x (bra r.MASS/mammals (colon 1 5) (r/empty-symbol))))
+(note-def (def x (bra r.MASS/mammals (colon 1 5) (r/empty-symbol))))
 (note (stats/dist x))
 (note (-> x stats/dist base/as-matrix))
 
-(note (def y (base/log (bra r.MASS/mammals
-                            ["Grey wolf", "Cow", "Human"]
-                            (r/empty-symbol)))))
+(note-def (def y (base/log (bra r.MASS/mammals
+                                ["Grey wolf", "Cow", "Human"]
+                                (r/empty-symbol)))))
 
-(note-void (plot->file (str target-path "/ex29.png") (fn []
-                                                       (g/plot (base/log ($ r.MASS/mammals 'body))
-                                                               (base/log ($ r.MASS/mammals 'brain))
-                                                               :xlab "log(body)" :ylab "log(brain)")
-                                                       (g/polygon y)
-                                                       (g/text y (base/rownames y) :adj [1.0 0.5]))))
-(note-hiccup [:image {:src "ex29.png"}])
+(note-void (plot->file (str target-path "ch2ex29.png") (fn []
+                                                         (g/plot (base/log ($ r.MASS/mammals 'body))
+                                                                 (base/log ($ r.MASS/mammals 'brain))
+                                                                 :xlab "log(body)" :ylab "log(brain)")
+                                                         (g/polygon y)
+                                                         (g/text y (base/rownames y) :adj [1.0 0.5]))))
+(note-hiccup [:image {:src "ch2ex29.png"}])
 
 (note (stats/dist y))
 
 (note-md "### 2.7.5 - Quick look at cluster analysis")
 (note-md "#### Example 2.10 - Cluster analysis of distances")
 
-(note (def h1 (-> r.MASS/mammals base/log stats/dist (stats/hclust :method "complete"))))
+(note-def (def h1 (-> r.MASS/mammals base/log stats/dist (stats/hclust :method "complete"))))
 
-(note (def big (base/subset r.MASS/mammals :subset '(> body (median body)))))
+(note-def (def big (base/subset r.MASS/mammals :subset '(> body (median body)))))
 
-(note (def h2 (-> big base/log stats/dist (stats/hclust :method "complete"))))
+(note-def (def h2 (-> big base/log stats/dist (stats/hclust :method "complete"))))
 
-(note-void (plot->file (str target-path "/ex210.png") #(g/plot h2)))
-(note-hiccup [:image {:src "ex210.png"}])
+(note-void (plot->file (str target-path "ch2ex210.png") #(g/plot h2)))
+(note-hiccup [:image {:src "ch2ex210.png"}])
 
 (note (u/head ($ h1 'merge)))
 (note (bra (base/rownames r.MASS/mammals) [22 28]))
 (note (bra (base/log r.MASS/mammals) [22 28] (r/empty-symbol)))
 
 (note-md "## Exercises")
+
+(note-md "### 2.1 - `chickwts` data")
+
+(note-void (plot->file (str target-path "ex21.png") #(g/boxplot (r "weight ~ feed") chickwts)))
+(note-hiccup [:image {:src "ex21.png"}])
+
+(note-md "### 2.2 - `iris` data")
+
+(note (base/by :data (bra iris (r/empty-symbol) [1 2 3 4])
+               :INDICES ($ iris 'Species)
+               :FUN base/colMeans
+               :na.rm true))
+
+(note-md "### 2.3 - `mtcars` data")
+
+(note-void (plot->file (str target-path "ex23.png") #(g/boxplot (bra mtcars [-3 -4]))))
+(note-hiccup [:image {:src "ex23.png"}])
+
+(note-void (plot->file (str target-path "ex23b.png") #(g/boxplot (bra mtcars [3 4]))))
+(note-hiccup [:image {:src "ex23b.png"}])
+
+(note-void (plot->file (str target-path "ex23c.png") #(g/pairs mtcars)))
+(note-hiccup [:image {:src "ex23c.png"}])
+
+(note-as-hiccup
+ (plot->file (str target-path "ex23c.png") #(g/pairs mtcars))
+ [:image {:src "ex23c.png"}])
+
+(plot "ex23c.png" (g/pairs mtcars))
+
+(note-as-hiccup
+ (plot->file
+  "resources/public/clojisr-examples/r-by-example/ex23c.png"
+  (fn [] (g/pairs mtcars)))
+ [:image {:src "ex23c.png"}])
+
+(note-md "# Cleaning")
+
+(note-void (base/detach brain))
+(note-void (base/detach USArrests))
 
 (notespace.v2.note/compute-this-notespace!)
 
