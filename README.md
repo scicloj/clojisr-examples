@@ -8,7 +8,7 @@ We use this repo to create and share examples of using [Clojisr](https://github.
 * [Rmarkdown](https://scicloj.github.io/clojisr-examples/resources/public/clojisr-examples/rmarkdown/index.html)
 * [Shiny](./src/clojisr_examples/shiny.clj)
 * [Lattice](./src/clojisr_examples/lattice.clj) - first 5 chapters from [this site](http://lmdvr.r-forge.r-project.org/figures/figures.html)
-* [R by Example](./src/clojisr_examples/r_by_example.clj) - examples from a book by J. Albert and M. Rizzo
+* [R by Example](https://scicloj.github.io/clojisr-examples/resources/public/clojisr-examples/r-by-example/index.html) - examples from a book by J. Albert and M. Rizzo
 
 ## Other collection of examples
 
