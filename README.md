@@ -10,6 +10,11 @@ We use this repo to create and share examples of using [Clojisr](https://github.
 * [Lattice](./src/clojisr_examples/lattice.clj) - first 5 chapters from [this site](http://lmdvr.r-forge.r-project.org/figures/figures.html)
 * [R by Example](./src/clojisr_examples/r_by_example.clj) - examples from a book by J. Albert and M. Rizzo
 
+## Other collection of examples
+
+* [clojure-map-examples](https://github.com/joannecheng/clojure-map-examples) by joannecheng - making geographic maps using R (rayshader, etc.) through interop.
+* some relevant notesbooks] [generateme's nextjournal collection](https://nextjournal.com/generateme/)
+
 ## How to add your examples
 This will soon be documented.
 
@@ -27,4 +32,3 @@ Public License, v. 2.0 are satisfied: GNU General Public License as published by
 the Free Software Foundation, either version 2 of the License, or (at your
 option) any later version, with the GNU Classpath Exception which is available
 at https://www.gnu.org/software/classpath/license.html.
-# clojisr-examples
