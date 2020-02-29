@@ -12,7 +12,7 @@ We use this repo to create and share examples of using [Clojisr](https://github.
 
 ## Other collection of examples
 
-* [clojure-map-examples](https://github.com/joannecheng/clojure-map-examples) by joannecheng - making geographic maps using R (rayshader, etc.) through interop.
+* [clojure-map-examples](https://github.com/joannecheng/clojure-map-examples) by joannecheng - making geographic maps using R (rayshader, etc.) through interop
 * some relevant notesbooks [generateme's nextjournal collection](https://nextjournal.com/generateme/)
 
 ## How to add your examples
