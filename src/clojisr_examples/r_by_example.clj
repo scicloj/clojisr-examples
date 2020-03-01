@@ -1,6 +1,7 @@
 (ns clojisr-examples.r-by-example
   (:require [notespace.v2.note :as note
-             :refer [note note-void note-md note-as-md note-hiccup note-as-hiccup]]))
+             :refer [note note-void note-md note-as-md note-hiccup note-as-hiccup]]
+            [clojisr.v1.r :as r]))
 
 (note/defkind note-def :def {:render-src?    true
                              :value-renderer (comp notespace.v2.view/value->hiccup var-get)})
@@ -14,10 +15,10 @@
       (plot->file ~p (fn [] ~@fs))
       [:image {:src ~fname}])))
 
-(note-md "# 'R by Example' by Jim Albert and Maria Rizzo - read-along")
+(note-md "# [R by Example](https://www.springer.com/gp/book/9781461413646) by Jim Albert and Maria Rizzo - read-along")
 
 (note-md "Code from the book ported to `clojisr` library. Read the book and run a code in Clojure.")
-(note-md "Data: http://personal.bgsu.edu/~mrizzo/Rx/Rx-data/")
+(note-md "[Datasets](http://personal.bgsu.edu/~mrizzo/Rx/Rx-data/)")
 
 (note-md :Setup "## Setup")
 
@@ -47,8 +48,8 @@
 (note-md "Options")
 (note-void (base/options :width 120 :digits 7))
 
-(note-md :Chapter-1---Introduction "## Chapter 1 - Introduction")
-
+(note-md :Chapter-1---Introduction "# Chapter 1 - Introduction")
+(note-md "## 1.1 Getting Started")
 (note-md "### 1.1.1 - Preliminaries")
 
 (note-md "Various ways to call R backend.")
@@ -447,18 +448,18 @@
 (note-md "Revert options")
 (note-void (base/options :width 120 :digits 8))
 
-(note-md "## Excercises")
-(note-md "### Excercise 1.1 - Normal percentiles")
+(note-md "## Exercises")
+(note-md "### Exercise 1.1 - Normal percentiles")
 
 (note (stats/qnorm 0.95))
 (note (stats/qnorm [0.25 0.5 0.75]))
 
-(note-md "### Excercise 1.2 - Chi-square density curve")
+(note-md "### Exercise 1.2 - Chi-square density curve")
 
 (note-void (plot->file (str target-path "ex12.png") #(g/curve '(dchisq x :df 1))))
 (note-hiccup [:image {:src "ex12.png"}])
 
-(note-md "### Excercise 1.3 - Gamma densities")
+(note-md "### Exercise 1.3 - Gamma densities")
 
 (note-void (plot->file (str target-path "ex13.png") (fn []
                                                        (g/curve '(dgamma x :shape 1 :rate 1) :from 0 :to 10)
@@ -466,7 +467,7 @@
                                                        (g/curve '(dgamma x :shape 3 :rate 1) :add true))))
 (note-hiccup [:image {:src "ex13.png"}])
 
-(note-md "### Excercise 1.4 - Binomial probabilities")
+(note-md "### Exercise 1.4 - Binomial probabilities")
 
 (note-void (defn binomial [p n k]
              (* (first (r->clj (base/choose n k)))
@@ -477,7 +478,7 @@
 
 (note (r->clj (stats/dbinom (range 13) 12 1/3)))
 
-(note-md "### Excercise 1.5 - Binomial CDF")
+(note-md "### Exercise 1.5 - Binomial CDF")
 
 (note (-> (colon 0 12)
           (stats/dbinom 12 1/3)
@@ -487,12 +488,12 @@
 
 (note (r- 1.0 (stats/pbinom 7 12 1/3)))
 
-(note-md "### Excercise 1.6 - Presidents’ heights")
+(note-md "### Exercise 1.6 - Presidents’ heights")
 
 (note-void (plot->file (str target-path "ex16.png") #(g/plot opponent winner)))
 (note-hiccup [:image {:src "ex16.png"}])
 
-(note-md "### Excercise 1.7 - Simulated \"horsekicks\" data")
+(note-md "### Exercise 1.7 - Simulated \"horsekicks\" data")
 
 (note-void (def poisson-1e3 (stats/rpois 1000 :lambda 0.61)))
 (note-void (def poisson-1e4 (stats/rpois 10000 :lambda 0.61)))
@@ -514,7 +515,7 @@
             t (stats/dpois (range 5) :lambda 0.61)]
         (base/data-frame :theoretical t :simulated1e3 t1 :simulated1e4 t2)))
 
-(note-md "### Excercise 1.8 - `horsekicks`, continued")
+(note-md "### Exercise 1.8 - `horsekicks`, continued")
 
 (note-def (def simulated-cdf (-> poisson-1e4
                                  base/table
@@ -525,18 +526,18 @@
 
 (note (base/matrix (base/c simulated-cdf poisson-cdf) :ncol 2))
 
-(note-md "### Excercise 1.9 - Custom standard deviation function")
+(note-md "### Exercise 1.9 - Custom standard deviation function")
 
 (note-void (def sd-n (r ['function '[x] ['sqrt [var-n 'x]]])))
 (note (sd-n temps))
 
-(note-md "### Excercise 1.10 - Euclidean norm function")
+(note-md "### Exercise 1.10 - Euclidean norm function")
 
 (note-void (def norm (r '(function [x] (sum (* x x))))))
 (note (norm [0 0 0 1]))
 (note (norm [2 5 2 4]))
 
-(note-md "### Excercise 1.11 - Numerical integration")
+(note-md "### Exercise 1.11 - Numerical integration")
 
 (note (def-r fx (r ['function '[x] [(symbol "/")
                                     '(exp (* -1 (* x x)))
@@ -549,18 +550,18 @@
 (note (stats/integrate 'fx :lower 0 :upper "INF"))
 
 
-(note-md "### Excercise 1.12 - Bivariate normal")
+(note-md "### Exercise 1.12 - Bivariate normal")
 
 (note-def (def x (-> (stats/rnorm 20)
                      (base/matrix 10 2))))
 
 (note (base/apply x :MARGIN 1 :FUN norm))
 
-(note-md "### Excercise 1.13 - `lunatics` data")
+(note-md "### Exercise 1.13 - `lunatics` data")
 
 (note (base/summary lunatics1))
 
-(note-md "### Excercise 1.14 - Tearing factor of paper")
+(note-md "### Exercise 1.14 - Tearing factor of paper")
 
 (note (let [input [[35.0 112 119 117 113]
                    [49.5 108 99 112 118]
@@ -572,7 +573,7 @@
         (base/data-frame :pressure (map first data)
                          :tearfactor (map second data))))
 
-(note-md "### Excercise 1.15 - Vectorized operations")
+(note-md "### Exercise 1.15 - Vectorized operations")
 
 (note (let [x (colon 1 8)
             n (colon 1 2)]
@@ -845,7 +846,7 @@
 (note-md "### 2.7.5 - Quick look at cluster analysis")
 (note-md "#### Example 2.10 - Cluster analysis of distances")
 
-(note-def (def h1 (-> r.MASS/mammals base/log stats/dist (stats/hclust :method "complete"))))
+(note-def (def h (-> r.MASS/mammals base/log stats/dist (stats/hclust :method "complete"))))
 
 (note-def (def big (base/subset r.MASS/mammals :subset '(> body (median body)))))
 
@@ -854,25 +855,25 @@
 (note-void (plot->file (str target-path "ch2ex210.png") #(g/plot h2)))
 (note-hiccup [:image {:src "ch2ex210.png"}])
 
-(note (u/head ($ h1 'merge)))
+(note (u/head ($ h 'merge)))
 (note (bra (base/rownames r.MASS/mammals) [22 28]))
 (note (bra (base/log r.MASS/mammals) [22 28] (r/empty-symbol)))
 
 (note-md "## Exercises")
 
-(note-md "### 2.1 - `chickwts` data")
+(note-md "### Exersise 2.1 - `chickwts` data")
 
 (note-void (plot->file (str target-path "ex21.png") #(g/boxplot (r "weight ~ feed") chickwts)))
 (note-hiccup [:image {:src "ex21.png"}])
 
-(note-md "### 2.2 - `iris` data")
+(note-md "### Exersise 2.2 - `iris` data")
 
 (note (base/by :data (bra iris (r/empty-symbol) [1 2 3 4])
                :INDICES ($ iris 'Species)
                :FUN base/colMeans
                :na.rm true))
 
-(note-md "### 2.3 - `mtcars` data")
+(note-md "### Exersise 2.3 - `mtcars` data")
 
 (note-void (plot->file (str target-path "ex23.png") #(g/boxplot (bra mtcars [-3 -4]))))
 (note-hiccup [:image {:src "ex23.png"}])
@@ -883,17 +884,158 @@
 (note-void (plot->file (str target-path "ex23c.png") #(g/pairs mtcars)))
 (note-hiccup [:image {:src "ex23c.png"}])
 
-(note-as-hiccup
- (plot->file (str target-path "ex23c.png") #(g/pairs mtcars))
- [:image {:src "ex23c.png"}])
+(note-md "### Exersise 2.4 - `mammals` data")
 
-(plot "ex23c.png" (g/pairs mtcars))
+(note-void (def mammals ($<- r.MASS/mammals 'r (rdiv ($ r.MASS/mammals 'brain)
+                                                     ($ r.MASS/mammals 'body)))))
 
-(note-as-hiccup
- (plot->file
-  "resources/public/clojisr-examples/r-by-example/ex23c.png"
-  (fn [] (g/pairs mtcars)))
- [:image {:src "ex23c.png"}])
+(note-void (def sorted-mammals (let [o (base/order ($ mammals 'r))]
+                                 (bra mammals o (r/empty-symbol)))))
+
+(note (u/head sorted-mammals 5))
+(note (u/tail sorted-mammals 5))
+
+(note-md "### Exersise 2.5 - `mammals` data, continued")
+
+(note-void (plot->file (str target-path "ex25.png") #(g/plot ($ mammals 'r)
+                                                             (base/log ($ mammals 'body))
+                                                             :xlab "brain/body ratio"
+                                                             :ylab "log(body)")))
+(note-hiccup [:image {:src "ex25.png"}])
+
+
+(note-md "### Exersise 2.6 - `LakeHuron` data")
+
+(note-void (plot->file (str target-path "ex26.png") (fn []
+                                                      (g/plot LakeHuron)
+                                                      (g/abline :h (base/mean LakeHuron) :lty 3)
+                                                      (g/lines (stats/lowess LakeHuron)))))
+(note-hiccup [:image {:src "ex26.png"}])
+
+(note-void (def d (base/diff LakeHuron)))
+
+(note-void (plot->file (str target-path "ex26b.png") (fn []
+                                                       (g/plot d)
+                                                       (g/abline :h 0 :lty 3)
+                                                       (g/lines (stats/lowess d)))))
+(note-hiccup [:image {:src "ex26b.png"}])
+
+(note-md "### Exersise 2.7 - Central Limit Theorem with simulated data")
+
+(note-void (def runif-data (-> (stats/runif 1200)
+                               (base/matrix 400)
+                               (base/colnames<- ["x" "y" "z"])
+                               (base/as-data-frame))))
+
+(note (base/colMeans runif-data))
+(note (stats/var runif-data))
+(note (-> runif-data stats/var base/diag))
+
+(note-void (plot->file (str target-path "ex27.jpg") (r.lattice/cloud (r "z ~ x + y") :data runif-data) :quality 85))
+(note-hiccup [:image {:src "ex27.jpg"}])
+
+(note-void (def means (base/rowMeans runif-data)))
+
+(note-void (plot->file (str target-path "ex27b.png") #(g/hist means :prob true)))
+(note-hiccup [:image {:src "ex27b.png"}])
+
+(note-void (plot->file (str target-path "ex27c.png") #(g/plot (stats/density means))))
+(note-hiccup [:image {:src "ex27c.png"}])
+
+(note-void (plot->file (str target-path "ex27d.png") (fn []
+                                                       (r.MASS/truehist means)
+                                                       (g/curve '(dnorm x 1/2 :sd (sqrt 1/36)) :add true))))
+(note-hiccup [:image {:src "ex27d.png"}])
+
+(note-void (plot->file (str target-path "ex27e.png") (fn []
+                                                       (stats/qqnorm means)
+                                                       (stats/qqline means))))
+(note-hiccup [:image {:src "ex27e.png"}])
+
+(note-md "### Exersise 2.8 - Central Limit Theorem, continued")
+
+(note-void (def runif-data (-> (stats/runif 4000)
+                               (base/matrix 400))))
+
+(note (base/colMeans runif-data))
+(note (-> runif-data stats/var base/diag))
+
+(note-void (def means (base/rowMeans runif-data)))
+
+(note-void (plot->file (str target-path "ex28.png") #(g/hist means :prob true)))
+(note-hiccup [:image {:src "ex28.png"}])
+
+(note-void (plot->file (str target-path "ex28b.png") #(g/plot (stats/density means))))
+(note-hiccup [:image {:src "ex28b.png"}])
+
+(note-void (plot->file (str target-path "ex28c.png") (fn []
+                                                       (r.MASS/truehist means)
+                                                       (g/curve '(dnorm x 1/2 :sd (sqrt 1/120)) :add true))))
+(note-hiccup [:image {:src "ex28c.png"}])
+
+(note-void (plot->file (str target-path "ex28d.png") (fn []
+                                                       (stats/qqnorm means)
+                                                       (stats/qqline means))))
+(note-hiccup [:image {:src "ex28d.png"}])
+
+(note-md "### Exersise 2.9 - 1970 Vietnam draft lottery")
+
+(note-md "skipped")
+
+(note-md "### Exersise 2.10 - \"Old Faithful\" histogram")
+
+(note-void (plot->file (str target-path "ex210.png") #(g/hist ($ faithful 'waiting) :prob true)))
+(note-hiccup [:image {:src "ex210.png"}])
+
+(note-md "### Exersise 2.11 - \"Old Faithful\" density estimate")
+
+(note-void (plot->file (str target-path "ex211.png") (fn []
+                                                       (let [h (g/hist ($ faithful 'waiting) :prob true)]
+                                                         (base/print h)
+                                                         (g/lines ($ h 'mids) ($ h 'density) :add true)))))
+(note-hiccup [:image {:src "ex211.png"}])
+
+(note-md "### Exersise 2.12 - Ordering the `mammals` data by brain size")
+
+(note-void (def sorted-mammals-by-brain
+             (let [o (base/order ($ mammals 'brain))]
+               (bra mammals o (r/empty-symbol)))))
+
+(note (u/tail sorted-mammals-by-brain 5))
+(note (u/head sorted-mammals-by-brain 5))
+
+(note-md "### Exersise 2.13 - `mammals` data on original scale")
+
+(note-def (def y (bra r.MASS/mammals
+                      ["Cat", "Cow", "Human"]
+                      (r/empty-symbol))))
+
+(note-void (plot->file (str target-path "ex213.png") (fn []
+                                                       (g/plot ($ r.MASS/mammals 'body)
+                                                               ($ r.MASS/mammals 'brain)
+                                                               :xlab "body" :ylab "brain")
+                                                       (g/polygon y)
+                                                       (g/text y (base/rownames y) :adj [1.0 0.5]))))
+(note-hiccup [:image {:src "ex213.png"}])
+
+(note-md "### Exersise 2.14 - `mammals` cluster analysis")
+
+(note-void (def dist2 (let [d (base/log (stats/dist big))] (r* d d))))
+(note-def (def clust (stats/hclust dist2 :method "ward.D")))
+
+(note-void (plot->file (str target-path "ex214.png") #(g/plot clust)))
+(note-hiccup [:image {:src "ex214.png"}])
+
+(note-md "### Exersise 2.15 - Identifying groups or clusters")
+
+(note-md "*possible wrong result*")
+
+(note-def (def g (stats/cutree h 5)))
+(note (base/table g))
+(note (bra r.MASS/mammals (r/r== g 5) (r/empty-symbol)))
+
+(note-md :Chapter-3---Categorical-data "# Chapter 3 - Categorical data")
+
 
 (note-md "# Cleaning")
 
@@ -903,4 +1045,3 @@
 (notespace.v2.note/compute-this-notespace!)
 
 #_(r/discard-all-sessions)
-
