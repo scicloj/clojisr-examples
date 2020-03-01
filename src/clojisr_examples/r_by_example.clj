@@ -49,7 +49,7 @@
 (note-void (base/options :width 120 :digits 7))
 
 (note-md :Chapter-1---Introduction "# Chapter 1 - Introduction")
-(note-md "## 1.1 Getting Started")
+(note-md "## 1.1 - Getting Started")
 (note-md "### 1.1.1 - Preliminaries")
 
 (note-md "Various ways to call R backend.")
@@ -1035,7 +1035,29 @@
 (note (bra r.MASS/mammals (r/r== g 5) (r/empty-symbol)))
 
 (note-md :Chapter-3---Categorical-data "# Chapter 3 - Categorical data")
+(note-md "## 3.1 - Introduction")
+(note-md "### 3.1.1 - Tabulating and plotting categorical data")
+(note-md "#### Example 3.1 - Flipping a coin")
 
+(note-def (def tosses (map str "HTHHTHHTHHTTHTTTHHHT")))
+(note (base/table tosses))
+(note-def (def prop-tosses (rdiv (base/table tosses)
+                                 (base/length tosses))))
+
+(note-void (plot->file (str target-path "ch3ex31.png") #(g/plot prop-tosses)))
+(note-void (plot->file (str target-path "ch3ex31b.png") #(g/barplot prop-tosses)))
+(note-hiccup [:div
+              [:image {:src "ch3ex31.png"}]
+              [:image {:src "ch3ex31b.png"}]])
+
+(note-md "### 3.1.2 - Character vectors and factors")
+(note-md "#### Example 3.2 - Rolling a die")
+
+(note-void (def y [1 4 3 5 4 2 4]))
+(note-void (def possible-rolls [1 2 3 4 5 6]))
+(note-void (def label-rolls ["one" "two" "three" "four" "five" "six"]))
+(note-def (def fy (base/factor y :levels possible-rolls :labels label-rolls)))
+(note (base/table fy))
 
 (note-md "# Cleaning")
 
