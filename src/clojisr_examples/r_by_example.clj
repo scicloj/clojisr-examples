@@ -499,7 +499,7 @@
 
 (note (r- 1.0 (stats/pbinom 7 12 1/3)))
 
-(note-md "### Exercise 1.6 - Presidents’ heights")
+(note-md "### Exercise 1.6 - Presidents' heights")
 
 (note-void (plot->file (str target-path "ex16.png") #(g/plot opponent winner
                                                              :xlab "opponent"
@@ -1069,7 +1069,7 @@
 (note-md "### 3.1.1 - Tabulating and plotting categorical data")
 (note-md "#### Example 3.1 - Flipping a coin")
 
-(note-def (def tosses (map str "HTHHTHHTHHTTHTTTHHHT")))
+(note-void (def tosses (map str "HTHHTHHTHHTTHTTTHHHT")))
 (note (base/table tosses))
 (note-def (def prop-tosses (rdiv (base/table tosses)
                                  (base/length tosses))))
@@ -1088,6 +1088,44 @@
 (note-void (def label-rolls ["one" "two" "three" "four" "five" "six"]))
 (note-def (def fy (base/factor y :levels possible-rolls :labels label-rolls)))
 (note (base/table fy))
+
+(note-md "## 3.2 - Chi-square Goodness-of-Fit Test")
+(note-md "#### Example 3.3 - Weldon’s dice")
+
+(note-def (def k (colon 0 12)))
+(note-def (def p (stats/dbinom k :size 12 :prob 1/3)))
+(note-def (def binom (-> (base/round (r* 26306 p))
+                         (base/names<- k))))
+(note-def (def weldon (-> (base/c 185 1149 3265 5475 6114 5194 3067 1331 403 105 14 4 0)
+                          (base/names<- k))))
+(note (r->clj (base/data-frame :Binom binom :Weldon weldon :Diff (r- weldon binom))))
+(note-def (def counts (-> (base/cbind binom weldon)
+                          (base/colnames<- ["binom" "weldon"]))))
+
+(note-void (plot->file (str target-path "ch3ex33.png") #(g/barplot counts :beside true)))
+(note-hiccup  [:image {:src "ch3ex33.png"}])
+
+(note-void (plot->file (str target-path "ch3ex33b.png") (fn []
+                                                          (g/plot k binom :type "h" :lwd 2 :lty 1 :ylab "Count" :xlab "k")
+                                                          (g/lines (r/r+ k 0.2) weldon :type "h" :lwd 2 :lty 2)
+                                                          (g/legend 8 5000 :legend ["Binomial" "Weldon"]
+                                                                    :lty [1 2] :lwd [2 2]))))
+(note-hiccup  [:image {:src "ch3ex33b.png"}])
+
+(note-def (def cweldon (base/c (bra weldon (colon 1 10))
+                               (base/sum (bra weldon [11 12 13])))))
+(note-def (def probs (base/c (bra p (colon 1 10))
+                             (r- 1.0 (base/sum (bra p (colon 1 10)))))))
+(note-def (def test (stats/chisq-test cweldon :p probs)))
+
+(note-void (plot->file (str target-path "ch3ex33c.png") (fn []
+                                                          (g/plot (colon 0 10)
+                                                                  ($ test 'residuals)
+                                                                  :xlab "k"
+                                                                  :ylab "Residual")
+                                                          (g/abline :h 0))))
+(note-hiccup  [:image {:src "ch3ex33c.png"}])
+
 
 (note-md "# Cleaning")
 
