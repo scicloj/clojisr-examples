@@ -48,6 +48,9 @@
 (note-md "Options")
 (note-void (base/options :width 120 :digits 7))
 
+(note-md "Seed")
+(note (base/set-seed 11228899))
+
 (note-md :Chapter-1---Introduction "# Chapter 1 - Introduction")
 (note-md "## 1.1 - Getting Started")
 (note-md "### 1.1.1 - Preliminaries")
@@ -155,7 +158,8 @@
                                                                   :ylab "Height difference in cm")))
 (note-hiccup [:image {:src "ch1ex2.png"}])
 
-(note-void (plot->file (str target-path "ch1ex2b.png") #(g/plot winner opponent)))
+(note-void (plot->file (str target-path "ch1ex2b.png") #(g/plot winner opponent
+                                                                :xlab "winner" :ylab "opponent")))
 (note-hiccup [:image {:src "ch1ex2b.png"}])
 
 (note-md "#### Example 1.3 - horsekicks")
@@ -314,16 +318,21 @@
 (note (bra USArrests "California" (r/empty-symbol)))
 (note ($ USArrests 'Assault))
 
-(note-void (plot->file (str target-path "ch1ex9.png") #(g/hist ($ USArrests 'Assault))))
+(note-void (plot->file (str target-path "ch1ex9.png") #(g/hist ($ USArrests 'Assault)
+                                                               :xlab "Assault"
+                                                               :main "Histogram of Assault")))
 (note-hiccup [:image {:src "ch1ex9.png"}])
 
 (note (require-r '[MASS]))
 
-(note-void (plot->file (str target-path "ch1ex9b.png") #(r.MASS/truehist ($ USArrests 'Assault))))
+(note-void (plot->file (str target-path "ch1ex9b.png") #(r.MASS/truehist ($ USArrests 'Assault)
+                                                                         :xlab "Assault")))
 (note-hiccup [:image {:src "ch1ex9b.png"}])
 
 (note-void (plot->file (str target-path "ch1ex9c.png") #(g/hist ($ USArrests 'Assault)
-                                                                 :prob true :breaks "scott")))
+                                                                :prob true :breaks "scott"
+                                                                :xlab "Assault"
+                                                                :main "Histogram of Assault")))
 (note-hiccup [:image {:src "ch1ex9c.png"}])
 
 (note-md "Attach creates symbols on the R side, use Clojure symbols (ex. 'Murder) to access them.")
@@ -456,15 +465,17 @@
 
 (note-md "### Exercise 1.2 - Chi-square density curve")
 
-(note-void (plot->file (str target-path "ex12.png") #(g/curve '(dchisq x :df 1))))
+(note-void (plot->file (str target-path "ex12.png") #(g/curve '(dchisq x :df 1)
+                                                              :ylab "dchisq(x,1)")))
 (note-hiccup [:image {:src "ex12.png"}])
 
 (note-md "### Exercise 1.3 - Gamma densities")
 
 (note-void (plot->file (str target-path "ex13.png") (fn []
-                                                       (g/curve '(dgamma x :shape 1 :rate 1) :from 0 :to 10)
-                                                       (g/curve '(dgamma x :shape 2 :rate 1) :add true)
-                                                       (g/curve '(dgamma x :shape 3 :rate 1) :add true))))
+                                                      (g/curve '(dgamma x :shape 1 :rate 1) :from 0 :to 10
+                                                               :ylab "dgamma(shape=[1:3], rate=1)")
+                                                      (g/curve '(dgamma x :shape 2 :rate 1) :add true)
+                                                      (g/curve '(dgamma x :shape 3 :rate 1) :add true))))
 (note-hiccup [:image {:src "ex13.png"}])
 
 (note-md "### Exercise 1.4 - Binomial probabilities")
@@ -490,7 +501,9 @@
 
 (note-md "### Exercise 1.6 - Presidents’ heights")
 
-(note-void (plot->file (str target-path "ex16.png") #(g/plot opponent winner)))
+(note-void (plot->file (str target-path "ex16.png") #(g/plot opponent winner
+                                                             :xlab "opponent"
+                                                             :ylab "winner")))
 (note-hiccup [:image {:src "ex16.png"}])
 
 (note-md "### Exercise 1.7 - Simulated \"horsekicks\" data")
@@ -725,7 +738,7 @@
 
 (note nhtemp)
 
-(note-void (plot->file (str target-path "ch2ex24.png") #(g/plot nhtemp)))
+(note-void (plot->file (str target-path "ch2ex24.png") #(g/plot nhtemp :ylab "temperatures")))
 (note-hiccup [:image {:src "ch2ex24.png"}])
 
 (note-void (plot->file (str target-path "ch2ex24b.png") (fn []
@@ -752,7 +765,7 @@
 (note-def (def months (bra draftnums (colon 2 13))))
 (note-def (def medians (base/sapply months stats/median :na.rm true)))
 
-(note-void (plot->file (str target-path "ch2ex25.png") #(g/plot medians :type "b" :xlab "month number")))
+(note-void (plot->file (str target-path "ch2ex25.png") #(g/plot medians :type "b" :xlab "month number" :ylab "medians")))
 (note-hiccup [:image {:src "ch2ex25.png"}])
 
 (note-void (plot->file (str target-path "ch2ex25b.png") #(g/boxplot months)))
@@ -771,17 +784,22 @@
 (note-void (def means (base/apply randu :MARGIN 1 :FUN base/mean)))
 (note-void (def means (base/rowMeans randu)))
 
-(note-void (plot->file (str target-path "ch2ex26b.png") #(g/hist means)))
+(note-void (plot->file (str target-path "ch2ex26b.png") #(g/hist means
+                                                                 :xlab "means"
+                                                                 :main "Histogram of means")))
 (note-hiccup [:image {:src "ch2ex26b.png"}])
 
-(note-void (plot->file (str target-path "ch2ex26c.png") #(g/hist means :prob true)))
+(note-void (plot->file (str target-path "ch2ex26c.png") #(g/hist means :prob true
+                                                                 :xlab "means"
+                                                                 :main "Histogram of means")))
 (note-hiccup [:image {:src "ch2ex26c.png"}])
 
-(note-void (plot->file (str target-path "ch2ex26d.png") #(g/plot (stats/density means))))
+(note-void (plot->file (str target-path "ch2ex26d.png") #(g/plot (stats/density means)
+                                                                 :main "Density of means")))
 (note-hiccup [:image {:src "ch2ex26d.png"}])
 
 (note-void (plot->file (str target-path "ch2ex26e.png") (fn []
-                                                          (r.MASS/truehist means)
+                                                          (r.MASS/truehist means :xlab "means")
                                                           (g/curve '(dnorm x 1/2 :sd (sqrt 1/36)) :add true))))
 (note-hiccup [:image {:src "ch2ex26e.png"}])
 
@@ -852,7 +870,7 @@
 
 (note-def (def h2 (-> big base/log stats/dist (stats/hclust :method "complete"))))
 
-(note-void (plot->file (str target-path "ch2ex210.png") #(g/plot h2)))
+(note-void (plot->file (str target-path "ch2ex210.png") #(g/plot h2 :xlab "hclust, method complete" :sub "")))
 (note-hiccup [:image {:src "ch2ex210.png"}])
 
 (note (u/head ($ h 'merge)))
@@ -876,10 +894,10 @@
 (note-md "### Exersise 2.3 - `mtcars` data")
 
 (note-void (plot->file (str target-path "ex23.png") #(g/boxplot (bra mtcars [-3 -4]))))
-(note-hiccup [:image {:src "ex23.png"}])
-
 (note-void (plot->file (str target-path "ex23b.png") #(g/boxplot (bra mtcars [3 4]))))
-(note-hiccup [:image {:src "ex23b.png"}])
+(note-hiccup [:div
+              [:image {:src "ex23.png"}]
+              [:image {:src "ex23b.png"}]])
 
 (note-void (plot->file (str target-path "ex23c.png") #(g/pairs mtcars)))
 (note-hiccup [:image {:src "ex23c.png"}])
@@ -903,11 +921,10 @@
                                                              :ylab "log(body)")))
 (note-hiccup [:image {:src "ex25.png"}])
 
-
 (note-md "### Exersise 2.6 - `LakeHuron` data")
 
 (note-void (plot->file (str target-path "ex26.png") (fn []
-                                                      (g/plot LakeHuron)
+                                                      (g/plot LakeHuron :ylab "level (in feet)")
                                                       (g/abline :h (base/mean LakeHuron) :lty 3)
                                                       (g/lines (stats/lowess LakeHuron)))))
 (note-hiccup [:image {:src "ex26.png"}])
@@ -915,7 +932,7 @@
 (note-void (def d (base/diff LakeHuron)))
 
 (note-void (plot->file (str target-path "ex26b.png") (fn []
-                                                       (g/plot d)
+                                                       (g/plot d :ylab "level differences (in feet)")
                                                        (g/abline :h 0 :lty 3)
                                                        (g/lines (stats/lowess d)))))
 (note-hiccup [:image {:src "ex26b.png"}])
@@ -936,14 +953,19 @@
 
 (note-void (def means (base/rowMeans runif-data)))
 
-(note-void (plot->file (str target-path "ex27b.png") #(g/hist means :prob true)))
+(note-void (plot->file (str target-path "ex27b.png") #(g/hist means :prob true
+                                                              :xlab "means"
+                                                              :main "Histogram of means")))
 (note-hiccup [:image {:src "ex27b.png"}])
 
-(note-void (plot->file (str target-path "ex27c.png") #(g/plot (stats/density means))))
+(note-void (plot->file (str target-path "ex27c.png") #(g/plot (stats/density means)
+                                                              :main "Density of means")))
 (note-hiccup [:image {:src "ex27c.png"}])
 
 (note-void (plot->file (str target-path "ex27d.png") (fn []
-                                                       (r.MASS/truehist means)
+                                                       (r.MASS/truehist means
+                                                                        :xlab "means"
+                                                                        :main "Histogram of means")
                                                        (g/curve '(dnorm x 1/2 :sd (sqrt 1/36)) :add true))))
 (note-hiccup [:image {:src "ex27d.png"}])
 
@@ -962,14 +984,18 @@
 
 (note-void (def means (base/rowMeans runif-data)))
 
-(note-void (plot->file (str target-path "ex28.png") #(g/hist means :prob true)))
+(note-void (plot->file (str target-path "ex28.png") #(g/hist means :prob true
+                                                             :xlab "means"
+                                                             :main "Histogram of means")))
 (note-hiccup [:image {:src "ex28.png"}])
 
-(note-void (plot->file (str target-path "ex28b.png") #(g/plot (stats/density means))))
+(note-void (plot->file (str target-path "ex28b.png") #(g/plot (stats/density means) :main "Density of means")))
 (note-hiccup [:image {:src "ex28b.png"}])
 
 (note-void (plot->file (str target-path "ex28c.png") (fn []
-                                                       (r.MASS/truehist means)
+                                                       (r.MASS/truehist means
+                                                                        :xlab "means"
+                                                                        :main "Histogram of means")
                                                        (g/curve '(dnorm x 1/2 :sd (sqrt 1/120)) :add true))))
 (note-hiccup [:image {:src "ex28c.png"}])
 
@@ -984,13 +1010,17 @@
 
 (note-md "### Exersise 2.10 - \"Old Faithful\" histogram")
 
-(note-void (plot->file (str target-path "ex210.png") #(g/hist ($ faithful 'waiting) :prob true)))
+(note-void (plot->file (str target-path "ex210.png") #(g/hist ($ faithful 'waiting) :prob true
+                                                              :xlab "waiting"
+                                                              :main "Histogram of waiting")))
 (note-hiccup [:image {:src "ex210.png"}])
 
 (note-md "### Exersise 2.11 - \"Old Faithful\" density estimate")
 
 (note-void (plot->file (str target-path "ex211.png") (fn []
-                                                       (let [h (g/hist ($ faithful 'waiting) :prob true)]
+                                                       (let [h (g/hist ($ faithful 'waiting) :prob true
+                                                                       :xlab "waiting"
+                                                                       :main "Histogram of waiting")]
                                                          (base/print h)
                                                          (g/lines ($ h 'mids) ($ h 'density) :add true)))))
 (note-hiccup [:image {:src "ex211.png"}])
@@ -1023,7 +1053,7 @@
 (note-void (def dist2 (let [d (base/log (stats/dist big))] (r* d d))))
 (note-def (def clust (stats/hclust dist2 :method "ward.D")))
 
-(note-void (plot->file (str target-path "ex214.png") #(g/plot clust)))
+(note-void (plot->file (str target-path "ex214.png") #(g/plot clust :xlab "hclust, method ward.D" :sub "")))
 (note-hiccup [:image {:src "ex214.png"}])
 
 (note-md "### Exersise 2.15 - Identifying groups or clusters")
@@ -1044,7 +1074,7 @@
 (note-def (def prop-tosses (rdiv (base/table tosses)
                                  (base/length tosses))))
 
-(note-void (plot->file (str target-path "ch3ex31.png") #(g/plot prop-tosses)))
+(note-void (plot->file (str target-path "ch3ex31.png") #(g/plot prop-tosses :ylab "tosses probability")))
 (note-void (plot->file (str target-path "ch3ex31b.png") #(g/barplot prop-tosses)))
 (note-hiccup [:div
               [:image {:src "ch3ex31.png"}]
