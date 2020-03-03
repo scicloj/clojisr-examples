@@ -65,12 +65,18 @@
             x5 (r->clj (r x))]
         (check = x1 x2 x3 x4 x5 x)))
 
-(note-md "Assigment to a var on R side. Three variants.")
+(note-md "Assigment to a var on R side. Three variants. Be careful, vector of integers stay as integers buy c() of integers is converted to doubles.")
 
 (note (do (r '(= x1 (c 109 65 22 3 1)))
           (r '(<- x2 (c 109 65 22 3 1)))
-          (<- 'x3 [109 65 22 3 1])
+          (<- 'x3 [109.0 65.0 22.0 3.0 1.0])
           (check = (r->clj (r 'x1)) (r->clj (r 'x2)) (r->clj (r 'x3)))))
+
+(note-md "We can compare object using `identical`.")
+
+(note (do (r '(= x1 (c 109 65 22 3 1)))
+          (<- 'x3 [109.0 65.0 22.0 3.0 1.0])
+          (check (comp first r->clj base/identical) 'x1 'x3)))
 
 (note-md "We will use `def-r` helper to define the same thing in Clojure and R.")
 
@@ -879,19 +885,19 @@
 
 (note-md "## Exercises")
 
-(note-md "### Exersise 2.1 - `chickwts` data")
+(note-md "### Exercise 2.1 - `chickwts` data")
 
 (note-void (plot->file (str target-path "ex21.png") #(g/boxplot (r "weight ~ feed") chickwts)))
 (note-hiccup [:image {:src "ex21.png"}])
 
-(note-md "### Exersise 2.2 - `iris` data")
+(note-md "### Exercise 2.2 - `iris` data")
 
 (note (base/by :data (bra iris (r/empty-symbol) [1 2 3 4])
                :INDICES ($ iris 'Species)
                :FUN base/colMeans
                :na.rm true))
 
-(note-md "### Exersise 2.3 - `mtcars` data")
+(note-md "### Exercise 2.3 - `mtcars` data")
 
 (note-void (plot->file (str target-path "ex23.png") #(g/boxplot (bra mtcars [-3 -4]))))
 (note-void (plot->file (str target-path "ex23b.png") #(g/boxplot (bra mtcars [3 4]))))
@@ -902,7 +908,7 @@
 (note-void (plot->file (str target-path "ex23c.png") #(g/pairs mtcars)))
 (note-hiccup [:image {:src "ex23c.png"}])
 
-(note-md "### Exersise 2.4 - `mammals` data")
+(note-md "### Exercise 2.4 - `mammals` data")
 
 (note-void (def mammals ($<- r.MASS/mammals 'r (rdiv ($ r.MASS/mammals 'brain)
                                                      ($ r.MASS/mammals 'body)))))
@@ -913,7 +919,7 @@
 (note (u/head sorted-mammals 5))
 (note (u/tail sorted-mammals 5))
 
-(note-md "### Exersise 2.5 - `mammals` data, continued")
+(note-md "### Exercise 2.5 - `mammals` data, continued")
 
 (note-void (plot->file (str target-path "ex25.png") #(g/plot ($ mammals 'r)
                                                              (base/log ($ mammals 'body))
@@ -921,7 +927,7 @@
                                                              :ylab "log(body)")))
 (note-hiccup [:image {:src "ex25.png"}])
 
-(note-md "### Exersise 2.6 - `LakeHuron` data")
+(note-md "### Exercise 2.6 - `LakeHuron` data")
 
 (note-void (plot->file (str target-path "ex26.png") (fn []
                                                       (g/plot LakeHuron :ylab "level (in feet)")
@@ -937,7 +943,7 @@
                                                        (g/lines (stats/lowess d)))))
 (note-hiccup [:image {:src "ex26b.png"}])
 
-(note-md "### Exersise 2.7 - Central Limit Theorem with simulated data")
+(note-md "### Exercise 2.7 - Central Limit Theorem with simulated data")
 
 (note-void (def runif-data (-> (stats/runif 1200)
                                (base/matrix 400)
@@ -974,7 +980,7 @@
                                                        (stats/qqline means))))
 (note-hiccup [:image {:src "ex27e.png"}])
 
-(note-md "### Exersise 2.8 - Central Limit Theorem, continued")
+(note-md "### Exercise 2.8 - Central Limit Theorem, continued")
 
 (note-void (def runif-data (-> (stats/runif 4000)
                                (base/matrix 400))))
@@ -1004,18 +1010,18 @@
                                                        (stats/qqline means))))
 (note-hiccup [:image {:src "ex28d.png"}])
 
-(note-md "### Exersise 2.9 - 1970 Vietnam draft lottery")
+(note-md "### Exercise 2.9 - 1970 Vietnam draft lottery")
 
 (note-md "skipped")
 
-(note-md "### Exersise 2.10 - \"Old Faithful\" histogram")
+(note-md "### Exercise 2.10 - \"Old Faithful\" histogram")
 
 (note-void (plot->file (str target-path "ex210.png") #(g/hist ($ faithful 'waiting) :prob true
                                                               :xlab "waiting"
                                                               :main "Histogram of waiting")))
 (note-hiccup [:image {:src "ex210.png"}])
 
-(note-md "### Exersise 2.11 - \"Old Faithful\" density estimate")
+(note-md "### Exercise 2.11 - \"Old Faithful\" density estimate")
 
 (note-void (plot->file (str target-path "ex211.png") (fn []
                                                        (let [h (g/hist ($ faithful 'waiting) :prob true
@@ -1025,7 +1031,7 @@
                                                          (g/lines ($ h 'mids) ($ h 'density) :add true)))))
 (note-hiccup [:image {:src "ex211.png"}])
 
-(note-md "### Exersise 2.12 - Ordering the `mammals` data by brain size")
+(note-md "### Exercise 2.12 - Ordering the `mammals` data by brain size")
 
 (note-void (def sorted-mammals-by-brain
              (let [o (base/order ($ mammals 'brain))]
@@ -1034,7 +1040,7 @@
 (note (u/tail sorted-mammals-by-brain 5))
 (note (u/head sorted-mammals-by-brain 5))
 
-(note-md "### Exersise 2.13 - `mammals` data on original scale")
+(note-md "### Exercise 2.13 - `mammals` data on original scale")
 
 (note-def (def y (bra r.MASS/mammals
                       ["Cat", "Cow", "Human"]
@@ -1048,7 +1054,7 @@
                                                        (g/text y (base/rownames y) :adj [1.0 0.5]))))
 (note-hiccup [:image {:src "ex213.png"}])
 
-(note-md "### Exersise 2.14 - `mammals` cluster analysis")
+(note-md "### Exercise 2.14 - `mammals` cluster analysis")
 
 (note-void (def dist2 (let [d (base/log (stats/dist big))] (r* d d))))
 (note-def (def clust (stats/hclust dist2 :method "ward.D")))
@@ -1056,7 +1062,7 @@
 (note-void (plot->file (str target-path "ex214.png") #(g/plot clust :xlab "hclust, method ward.D" :sub "")))
 (note-hiccup [:image {:src "ex214.png"}])
 
-(note-md "### Exersise 2.15 - Identifying groups or clusters")
+(note-md "### Exercise 2.15 - Identifying groups or clusters")
 
 (note-md "*possible wrong result*")
 
@@ -1126,6 +1132,96 @@
                                                           (g/abline :h 0))))
 (note-hiccup  [:image {:src "ch3ex33c.png"}])
 
+(note-md "## 3.3 -  Relating Two Categorical Variables")
+(note-md "### 3.3.1 - Introduction")
+(note-md "#### Example 3.4 - The twins dataset")
+(note-md "### 3.3.2 - Frequency tables and graphs")
+
+(note-void (def twn (u/read-table "data/twins.dat.txt"
+                                  :header true
+                                  :sep ","
+                                  :na.strings ".")))
+
+(note (base/table ($ twn 'EDUCL)))
+(note (base/table ($ twn 'EDUCH)))
+
+(note-void (def breaks [0 12 15 16 24]))
+(note-void (def labels ["High School" "Some College" "College Degree" "Graduate School"]))
+
+(note-void (def c-educl (base/cut ($ twn 'EDUCL) :breaks breaks :labels labels)))
+(note-void (def c-educh (base/cut ($ twn 'EDUCH) :breaks breaks :labels labels)))
+
+(note (base/table c-educl))
+(note (base/prop-table (base/table c-educl)))
+
+(note-void (plot->file (str target-path "ch3ex34.png") #(-> c-educl
+                                                            base/table
+                                                            base/prop-table
+                                                            g/barplot) :width 520))
+(note-hiccup  [:image {:src "ch3ex34.png"}])
+
+(note-void (plot->file (str target-path "ch3ex34b.png") #(g/mosaicplot (base/table c-educl)
+                                                                       :main "c-educl")))
+(note-hiccup  [:image {:src "ch3ex34b.png"}])
+
+(note-md "### 3.3.3 - Contingency tables")
+
+(note-def (def t1 (base/table c-educl c-educh)))
+(note (base/diag t1))
+(note (rdiv (-> t1 base/diag base/sum)
+            (-> t1 base/sum)))
+
+(note-void (plot->file (str target-path "ch3ex34c.png") #(g/plot t1 :main "T" :xlab "c-educl" :ylab "c-educh")))
+(note-hiccup  [:image {:src "ch3ex34c.png"}])
+
+(note-md "## 3.4 - Association Patterns in Contingency Tables")
+(note-md "### 3.4.1 - Constructing a contingency table")
+
+(note-void (def c-wage (base/cut ($ twn 'HRWAGEL) [0 7 13 20 150])))
+(note (base/table c-wage))
+(note-def (def t2 (base/table c-educl c-wage :dnn ["c.educl" "c.wage"])))
+(note-def (def P (base/prop-table t2 :margin 1)))
+
+(note-md "### 3.4.2 - Graphing patterns of association")
+
+(note-void (plot->file (str target-path "ch3ex34d.png") #(g/barplot (base/t P)
+                                                                    :ylim [0 1.3]
+                                                                    :ylab "PROPOTION"
+                                                                    :legend.text ($ (base/dimnames P) 'c.wage)
+                                                                    :args.legend {:x "top"}) :width 520))
+(note-hiccup  [:image {:src "ch3ex34d.png"}])
+
+(note-void (plot->file (str target-path "ch3ex34e.png") #(g/barplot (base/t P)
+                                                                    :beside true
+                                                                    :ylab "PROPOTION"
+                                                                    :legend.text ($ (base/dimnames P) 'c.wage)
+                                                                    :args.legend {:x "topleft"}) :width 520))
+(note-hiccup  [:image {:src "ch3ex34e.png"}])
+
+(note-md "## 3.5 - Testing Independence by a Chi-square Test")
+
+(note-def (def S (stats/chisq-test t2)))
+(note ($ S 'expected))
+(note (base/sum (rdiv (rpow (r- t2 ($ S 'expected)) 2)
+                      ($ S 'expected))))
+(note (r- 1 (stats/pchisq 54.57759 :df 9)))
+(note (base/names S))
+(note ($ S 'residuals))
+
+(note-void (plot->file (str target-path "ch3ex34f.png") #(g/mosaicplot t2 :shade false :main "not shaded")))
+(note-void (plot->file (str target-path "ch3ex34g.png") #(g/mosaicplot t2 :shade true :main "shaded")))
+(note-hiccup  [:div
+               [:image {:src "ch3ex34f.png"}]
+               [:image {:src "ch3ex34g.png"}]])
+
+(note-md "### Exercise 3.1 - Fast food eating preference")
+(note-md "### Exercise 3.2 - Dice rolls")
+(note-md "### Exercise 3.3 - Does baseball hitting data follow a binomial distribution?")
+(note-md "### Exercise 3.4 - Categorizing ages in the twins dataset")
+(note-md "### Exercise 3.5 - Relating age and wage in the twins dataset")
+(note-md "### Exercise 3.6 - Relating age and wage in the twins dataset, continued")
+(note-md "### Exercise 3.7 - Dice rolls, continued")
+(note-md "### Exercise 3.8 - Are the digits of `pi` random?")
 
 (note-md "# Cleaning")
 
@@ -1135,3 +1231,4 @@
 (notespace.v2.note/compute-this-notespace!)
 
 #_(r/discard-all-sessions)
+
