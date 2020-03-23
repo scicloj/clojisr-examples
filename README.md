@@ -1,6 +1,6 @@
 # clojisr-examples
 
-We use this repo to create and share examples of using [Clojisr](https://github.com/scicloj/clojisr).
+We use this repo to create and share examples of using [Clojisr](https://github.com/scicloj/clojisr) (BETA10-SNAPSHOT).
 
 ## List of examples
 
