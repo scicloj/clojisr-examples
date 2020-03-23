@@ -1215,7 +1215,29 @@
                [:image {:src "ch3ex34g.png"}]])
 
 (note-md "### Exercise 3.1 - Fast food eating preference")
+
+(note-void (def ff-prefs ["Wendys" "McDonalds" "Subway" "Subway" "Subway" "Wendys"
+                          "Wendys" "Subway" "Wendys" "Subway" "Subway" "Subway"
+                          "Subway" "Subway" "Subway"]))
+(note (base/table ff-prefs))
+(note-def (def P (-> ff-prefs base/table (base/prop-table))))
+
+(note-void (plot->file (str target-path "ex31.png") #(g/barplot P :ylab "PROPOTION" :ylim [0 0.8])))
+(note-hiccup  [:image {:src "ex31.png"}])
+(note-void (plot->file (str target-path "ex31b.png") #(g/mosaicplot P :main "Eating preference")))
+(note-hiccup  [:image {:src "ex31b.png"}])
+
 (note-md "### Exercise 3.2 - Dice rolls")
+
+(note-void (def die1 (base/sample 6 1000 :replace true)))
+(note-void (def die2 (base/sample 6 1000 :replace true)))
+(note-void (def die-sum (r+ die1 die2)))
+
+(note-def (def die-probs (-> die-sum base/table base/prop-table)))
+(note-def (def real-die-probs (-> (for [x (range 1 7) y (range 1 7)] (+ x y))
+                                  (base/table)
+                                  (base/prop-table))))
+
 (note-md "### Exercise 3.3 - Does baseball hitting data follow a binomial distribution?")
 (note-md "### Exercise 3.4 - Categorizing ages in the twins dataset")
 (note-md "### Exercise 3.5 - Relating age and wage in the twins dataset")
