@@ -33,8 +33,8 @@ We convert it to R Markdown, taking care of the code block, and then we render t
      [:div
       [:h1 "hi!"]
       '[:r-forms
-        [library ggplot2]
-        [qplot x y]]]]
+        (library ggplot2)
+        (qplot x y)]]]
     ;; Convert it to R Markdown, taking care of the code block.
     hiccup->rmd
     ;; Render the R Markdown to an html file, with our data added to
@@ -50,8 +50,8 @@ converted to an R data.frame.")
  ;; A different way to do the same.
  (let [xs    (repeatedly 1000 rand)
        ys    (map +
-                 xs
-                 (repeatedly rand))
+                  xs
+                  (repeatedly rand))
        ;; This time, our data is a tech.ml.dataset dataset object.
        data {:df (dataset/name-values-seq->dataset
                   {:x xs
@@ -63,10 +63,10 @@ converted to an R data.frame.")
      [:div
       [:h1 "hi!"]
       '[:r-forms
-       [library ggplot2]
-       [head df]
-        (+ [ggplot :data df]
-           [geom_point [aes :x x :y y]])]]]
+        (library ggplot2)
+        (head df)
+        (+ (ggplot :data df)
+           (geom_point (aes :x x :y y)))]]]
     hiccup->rmd
     (render-rmd data)
     slurp)))
@@ -97,23 +97,21 @@ with a genrateted Hiccup structure, containing a sequence of code blocks.")
          (for [n (->> (range 3)
                       (map (fn [i]
                              (Math/round
-                              (Math/pow 4 i)))))]
+                              (Math/pow 4 (inc i))))))]
            [:div
             [:h1 n " samples"]
-            [:r-forms
-             '[library ggplot2]
-             '[head df]
-             ['+
-              ['ggplot :data ['head 'df n]]
-              '[geom_point [aes
-                            :x     x
-                            :y     y
-                            :color z]]]]]))]
+            `[:r-forms
+              (library ggplot2)
+              (head df)
+              (+ (ggplot :data (head df ~n))
+                 (geom_point (aes
+                              :x     x
+                              :y     y
+                              :color z)))]]))]
        hiccup->rmd
        (render-rmd data)
        slurp
        ((fn [html]
           [:div html])))))
 
-
-#_(notespace.v2.note/compute-this-notespace!)
+(comment (notespace.v2.note/compute-this-notespace!))

@@ -13,12 +13,12 @@
  (require-r '[stats]))
 
 (note
- (r '[+ 1 [1 2 3]]))
+ (r '(+ 1 [1 2 3])))
 
 (note
  (->> [1 2 4]
       r.stats/median
       r/r->clj
-      (check = [2])))
+      (check = [2.0])))
 
-
+(comment (notespace.v2.note/compute-this-notespace!))

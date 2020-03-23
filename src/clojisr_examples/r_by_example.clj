@@ -38,13 +38,6 @@
                       '[graphics :as g]
                       '[datasets :refer :all]))
 
-(note-md "We will also use `def-r` macro (not shown here) which helps to define the same things on both sides (Clojure and R).")
-
-(defmacro def-r [name & r]
-  `(do
-     (def ~name ~@r)
-     (<- '~(symbol name) ~name)))
-
 (note-md "Options")
 (note-void (base/options :width 120 :digits 7))
 
@@ -60,7 +53,7 @@
 (note (let [x [109.0 65.0 22.0 3.0 1.0]
             x1 (r->clj (r [109.0 65 22 3 1]))
             x2 (r->clj (r "c(109, 65, 22, 3, 1)"))
-            x3 (r->clj (r '[c 109.0 65.0 22.0 3.0 1.0]))
+            x3 (r->clj (r '(c 109.0 65.0 22.0 3.0 1.0)))
             x4 (r->clj (base/c 109.0 65.0 22.0 3.0 1.0))
             x5 (r->clj (r x))]
         (check = x1 x2 x3 x4 x5 x)))
@@ -78,14 +71,14 @@
           (<- 'x3 [109.0 65.0 22.0 3.0 1.0])
           (check (comp first r->clj base/identical) 'x1 'x3)))
 
-(note-md "We will use `def-r` helper to define the same thing in Clojure and R.")
+(note-md "We will use `def` with `<-` to define the same thing in Clojure and R.")
 
-(note-void (def-r x [109 65 22 3 1]))
-(note (check = x (r->clj (r 'x))))
+(note-void (def x (<- 'x [109 65 22 3 1])))
+(note (check = (r->clj x) (r->clj (r 'x))))
 
 (note-md "Below `y` on Clojure and R sides represent the same R object. `stats/rpois` is R function.")
 
-(note (def-r y (stats/rpois 200 :lambda 0.61)))
+(note (def y (<- 'y (stats/rpois 200 :lambda 0.61))))
 (note (check =
              (take 10 (r->clj y))
              (take 10 (r->clj (r 'y)))))
@@ -98,8 +91,8 @@
 
 (note-void (def temps [51.9 51.8 51.9 53]))
 
-(note (r ['- temps 32]))
-(note (r ['* 5/9 ['- temps 32]]))
+(note (r '(- ~temps 32)))
+(note (r '(* 5/9 (- ~temps 32))))
 
 (note-md "We can define helper functions for primitive binary operations used above")
 
@@ -149,7 +142,7 @@
 
 (note (base/data-frame :year year :winner winner :opponent opponent :difference difference))
 
-(note-def (def taller-won (r ['> winner opponent])))
+(note-def (def taller-won (r '(> ~winner ~opponent))))
 
 (note (base/table taller-won))
 
@@ -253,7 +246,9 @@
 
 (note-md "#### Example 1.6 - functions as arguments")
 
-(note-void (def f (r "function(x, a=1, b=1) x^(a-1) * (1-x)^(b-1)")))
+(note-void (def f (r '(function [x :a 1 :b 1]
+                                (* ("`^`" x (- a 1))
+                                   ("`^`" (- 1 x) (- b 1)))))))
 (note (let [x (base/seq 0 1 0.2)]
         (f x :a 2 :b 2)))
 
@@ -293,7 +288,6 @@
 (note (let [P4 (base/%*% P2 P2)
             P8 (base/%*% P4 P4)]
         P8))
-
 
 (note-def (def Q (base/matrix [0.45 0.48 0.07
                                0.05 0.70 0.25
@@ -345,7 +339,7 @@
 (note (base/attach USArrests))
 
 (note-def (def murder-pct (r '(/ (* 100 Murder)
-                                 (+ (+ Murder Assault) Rape)))))
+                                 (+ Murder Assault Rape)))))
 (note (u/head murder-pct))
 
 #_(note-md "problems with `with`")
@@ -547,7 +541,7 @@
 
 (note-md "### Exercise 1.9 - Custom standard deviation function")
 
-(note-void (def sd-n (r ['function '[x] ['sqrt [var-n 'x]]])))
+(note-void (def sd-n (r '(function [x] (sqrt (~var-n x))))))
 (note (sd-n temps))
 
 (note-md "### Exercise 1.10 - Euclidean norm function")
@@ -558,9 +552,8 @@
 
 (note-md "### Exercise 1.11 - Numerical integration")
 
-(note (def-r fx (r ['function '[x] [(symbol "/")
-                                    '(exp (* -1 (* x x)))
-                                    '(+ 1 (* x x))]])))
+(note (def fx (r '(<- fx (function [x] (/ (exp (* -1 (* x x)))
+                                          (+ 1 (* x x))))))))
 
 (note-void (plot->file (str target-path "ex111.png") #(g/curve 'fx :from 0 :to 10)))
 (note-hiccup [:image {:src "ex111.png"}])
@@ -1075,7 +1068,7 @@
 (note-md "### 3.1.1 - Tabulating and plotting categorical data")
 (note-md "#### Example 3.1 - Flipping a coin")
 
-(note-void (def tosses (map str "HTHHTHHTHHTTHTTTHHHT")))
+(note-void (def tosses (mapv str "HTHHTHHTHHTTHTTTHHHT")))
 (note (base/table tosses))
 (note-def (def prop-tosses (rdiv (base/table tosses)
                                  (base/length tosses))))
@@ -1250,7 +1243,6 @@
 (note-void (base/detach brain))
 (note-void (base/detach USArrests))
 
-(notespace.v2.note/compute-this-notespace!)
+(comment (notespace.v2.note/compute-this-notespace!))
 
-#_(r/discard-all-sessions)
-
+(comment (r/discard-all-sessions))
