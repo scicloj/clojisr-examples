@@ -8,7 +8,7 @@
 
 ;; Be sure to install following packages:
 ;;
-;; install.packages(c("lattice", "latticeExtra", "mlmrev", "MEMSS", "locfit", "hexbin"))
+;; install.packages(c("lattice", "latticeExtra", "mlmrev", "MEMSS", "locfit", "hexbin", "maps", "copula"))
 
 (note/defkind note-def :def {:render-src?    true
                              :value-renderer (comp notespace.v2.view/value->hiccup var-get)})
@@ -30,6 +30,7 @@
                       '[stats :as stats]
                       '[mlmRev]
                       '[MEMSS]
+                      '[MASS]
                       '[grDevices :as dev]
                       '[graphics :as g]
                       '[base :refer [$ $<- <- summary] :as base]
@@ -37,20 +38,23 @@
                       '[grid]
                       '[locfit]
                       '[hexbin]
+                      '[maps]
+                      '[copula]
+                      '[RColorBrewer]
                       '[datasets :refer :all]))
 
 (note (r->clj r.base/version))
 
-#_(dev/x11 :width 9)
+(comment (dev/x11 :width 9))
 
 ;; Chapter 1
 
 (note-md :Chapter-1 "## Chapter 1")
 
+(note-md "### Figure 1.1")
+
 (note (r->clj (stats/xtabs '(formula nil score) :data r.mlmRev/Chem97)))
 ;; => [3688 3627 4619 5739 6668 6681]
-
-(note-md "### Figure 1.1")
 
 (note-void (plot->file (str target-path "1.1.png") (-> '(formula nil (| gcsescore (factor score)))
                                                        (lat/histogram :data r.mlmRev/Chem97))))
@@ -104,6 +108,8 @@
 (note-void (plot->file (str target-path "2.1.png") #(base/print tp1-oats)))
 (note-hiccup [:image {:src "2.1.png"}])
 
+(note-md "### Figure 2.2")
+
 (note (base/dim tp1-oats))
 ;; => [1] 3 6
 
@@ -144,8 +150,6 @@
 ;;      4.0],
 ;;     :index.cond [[1 2 3] [1 2 3 4 5 6]],
 ;;     :perm.cond [1 2]}
-
-(note-md "### Figure 2.2")
 
 (note (r->clj (base/summary (r/bra tp1-oats (r/empty-symbol) 1))))
 ;; => {:call
@@ -312,7 +316,7 @@
 ;; Figure 7
 (note-md "### Figure 3.7")
 
-(note-void (def chem97-mod (base/transform r.mlmRev/Chem97 :gcsescore.trans '("`^`" gcsescore 2.34))))
+(note-void (def chem97-mod (base/transform r.mlmRev/Chem97 :gcsescore.trans '(** gcsescore 2.34))))
 
 (note-void (plot->file (str target-path "3.7.png") (-> '(formula nil (| gcsescore.trans gender))
                                                        (lat/qqmath chem97-mod :groups 'score :aspect "xy" :f.value (stats/ppoints 100)
@@ -359,7 +363,7 @@
 ;; Figure 12
 
 (note-md "### Figure 3.12")
-(note-void (plot->file (str target-path "3.12.png") (-> '(formula ("`^`" gcsescore 2.34) (| gender  (factor score)))
+(note-void (plot->file (str target-path "3.12.png") (-> '(formula (** gcsescore 2.34) (| gender  (factor score)))
                                                         (lat/bwplot :data r.mlmRev/Chem97 :varwidth true :layout [6 1]
                                                                     :xlab "Average GCSE Score"))))
 (note-hiccup [:image {:src "3.12.png"}])
@@ -411,12 +415,13 @@
 
 (note-md :Chapter-4 "## Chapter 4")
 
+(note-md "### Figure 4.1")
+
 (note VADeaths)
 (note (base/class VADeaths))
 (note (r->clj (r.utils/methods "dotplot")))
 
 ;; Figure 1
-(note-md "### Figure 4.1")
 (note-void (plot->file (str target-path "4.1.png")
                        (lat/dotplot VADeaths :groups false)))
 (note-hiccup [:image {:src "4.1.png"}])
@@ -585,6 +590,7 @@
 (note-hiccup [:image {:src "5.5.png"}])
 
 ;; Figure 6
+(note-md "### Figure 5.6")
 
 (note-void (def depth-breaks (lat/do-breaks (base/range ($ quakes-ordered 'depth)) 50)))
 
@@ -592,7 +598,6 @@
                                    ($<- 'color (lat/level-colors ($ quakes-ordered 'depth)
                                                                  :at depth-breaks
                                                                  :col.regions dev/gray-colors)))))
-(note-md "### Figure 5.6")
 (note-void (plot->file (str target-path "5.6.png")
                        (-> '(formula lat  (| long Magnitude))
                            (lat/xyplot :data quakes-ordered :aspect "iso"
@@ -786,15 +791,427 @@
 ;; Figure 19
 
 (note-md "### Figure 5.19")
-(note-void (plot->file (str target-path "5.19.png")
+(note-void (plot->file (str target-path "5.19.jpg")
                        (-> '(formula nil (asinh (bra gvhd10 [3 2 4 1 5])))
                            (lat/parallel :data late/gvhd10
                                          :subset '(== Days 13)
                                          :alpha 0.01 :lty 1))))
-(note-hiccup [:image {:src "5.19.png"}])
+(note-hiccup [:image {:src "5.19.jpg"}])
 
-#_(dev/dev-off)
+(note-md :Chapter-6 "## Chapter 6")
+
+(note-md "### Figure 6.1")
+
+(note-void (def quakes ($<- quakes 'Magnitude (lat/equal-count ($ quakes 'mag) 4))))
+
+(note-void (plot->file (str target-path "6.1.png")
+                       (-> '(formula depth (| (* lat long) Magnitude))
+                           (lat/cloud :data quakes
+                                      :zlim (base/rev (base/range ($ quakes 'depth)))
+                                      :screen {:z 105 :x -70}
+                                      :panel.aspect 0.75
+                                      :xlab "Longitude" :ylab "Latitude" :zlab "Depth"))))
+(note-hiccup [:image {:src "6.1.png"}])
+
+(note-md "### Figure 6.2")
+(note-void (plot->file (str target-path "6.2.png")
+                       (-> '(formula depth (| (* lat long) Magnitude))
+                           (lat/cloud :data quakes
+                                      :zlim (base/rev (base/range ($ quakes 'depth)))
+                                      :screen {:z 80 :x -70} :zoom 0.7
+                                      :scales {:z {:arrows false :distance 2}}
+                                      :panel.aspect 0.75
+                                      :xlab "Longitude" :ylab "Latitude"
+                                      :zlab [:!list "Depth\n(km)" :rot 90]))))
+(note-hiccup [:image {:src "6.2.png"}])
+
+(note-md "### Figure 6.3")
+
+(note-void
+ (def p (-> '(formula depth (+ long lat))
+            (lat/cloud quakes
+                       :zlim [690 30]
+                       :pch "." :cex 1.5 :zoom 1
+                       :xlab nil :ylab nil :zlab nil
+                       :par.settings {:axis.line {:col "transparent"}}
+                       :scale {:draw false})))
+ (def npanel 4)
+ (def rotz (base/seq -30 30 :length npanel))
+ (def roty [3 0]))
+
+(note-void (plot->file (str target-path "6.3.png")
+                       (stats/update (r/bra p (base/rep 1 (* 2 npanel)))
+                                     :layout [2 npanel]
+                                     :panel '(function [... screen]
+                                                       (<- crow (current.row))
+                                                       (<- ccol (current.column))
+                                                       (panel.cloud ... :screen {:z (bra ~rotz crow)
+                                                                                 :x -60
+                                                                                 :y (bra ~roty ccol)})))))
+(note-hiccup [:image {:src "6.3.png"}])
+
+(note-md "### Figure 6.4")
+
+(note-void (def state-info ($<- (base/data-frame :name state-name
+                                                 :long ($ state-center 'x)
+                                                 :lat ($ state-center 'y)
+                                                 :area (r/bra state-x77 (r/empty-symbol) "Area")
+                                                 :population '(* 1000 ~(r/bra state-x77 (r/empty-symbol) "Population")))
+                                'density (base/with state-info '(/ population area)))))
+
+(note-void (plot->file (str target-path "6.4.png")
+                       (-> '(formula density (+ long lat))
+                           (lat/cloud state-info
+                                      :subset '(! (%in% name ["Alaska" "Hawaii"]))
+                                      :type "h" :lwd 2 :zlim [0 (base/max ($ state-info 'density))]
+                                      :scale {:arrows false}))))
+(note-hiccup [:image {:src "6.4.png"}])
+
+(note-md "### Figure 6.5")
+
+(note-void
+ (def state-map (r.maps/map "state" :plot false :fill false))
+ (def state-map-range-x (r/bra ($ state-map 'range) [1 2]))
+ (def state-map-range-y (r/bra ($ state-map 'range) [3 4]))
+ (def panel-3dmap (r '(function [... rot.mat distance xlim ylim zlim xlim.scaled ylim.scaled zlim.scaled]
+                                (<- scaled.val (function [x original scaled]
+                                                         (+ (bra scaled 1)
+                                                            (/ (* (- x (bra original 1))
+                                                                  (diff scaled))
+                                                               (diff original)))))
+                                (<- m (ltransform3dto3d (rbind (scaled.val ($ ~state-map x) xlim xlim.scaled)
+                                                               (scaled.val ($ ~state-map y) ylim ylim.scaled)
+                                                               (bra zlim.scaled 1))
+                                                        rot.mat distance))
+                                (panel.lines (bra m 1 ~(r/empty-symbol))
+                                             (bra m 2 ~(r/empty-symbol))
+                                             :col "grey76")))))
+
+(note-void (plot->file (str target-path "6.5.png")
+                       (-> '(formula density (+ long lat))
+                           (lat/cloud state-info
+                                      :subset '(! (%in% name ["Alaska" "Hawaii"]))
+                                      :panel.3d.cloud '(function [...]
+                                                                 (~panel-3dmap ...)
+                                                                 (panel.3dscatter ...))
+                                      :type "h" :scales {:draw false} :zoom 1.1
+                                      :xlim state-map-range-x
+                                      :ylim state-map-range-y
+                                      :xlab nil :ylab nil :zlab nil
+                                      :aspect '[(/ (diff ~state-map-range-y)
+                                                   (diff ~state-map-range-x)) 0.3]
+                                      :panel.aspect 0.75 :lwd 2 :screen {:z 30 :x -60}
+                                      :par.settings {:axis.line {:col "transparent"}
+                                                     :box.3d {:col "transparent" :alpha 0}}))))
+(note-hiccup [:image {:src "6.5.png"}])
+
+(note-md "### Figure 6.6")
+
+(note (def env (-> lat/environmental
+                   ($<- 'ozone (r/r** ($ lat/environmental 'ozone) 1/3))
+                   ($<- 'Radiation (lat/equal-count ($ lat/environmental 'radiation) 4)))))
+
+(note-void (plot->file (str target-path "6.6.png")
+                       (lat/cloud '(formula ozone (| (+ wind temperature) Radiation)) env)))
+(note-hiccup [:image {:src "6.6.png"}])
+
+(note-md "### Figure 6.7")
+(note-void (plot->file (str target-path "6.7.png")
+                       (lat/splom (r/bra env [1 2 3 4]))))
+(note-hiccup [:image {:src "6.7.png"}])
+
+(note-md "### Figure 6.8")
+
+(note-def
+ (def fm1-env (stats/lm '(formula ozone (* radiation temperature wind)) env)))
+(note-def
+ (def fm2-env (stats/loess '(formula ozone (* wind temperature radiation)) env
+                           :span 0.75 :degree 1)))
+(note-def
+ (def fm3-env (stats/loess '(formula ozone (* wind temperature radiation)) env
+                           :parametric ["radiation" "wind"]
+                           :span 0.75 :degree 2)))
+(note-def
+ (def fm4-env (r.locfit/locfit '(formula ozone (* wind temperature radiation)) env)))
+
+(note (def w-mesh (r '(with ~env (do.breaks (range wind) 50))))
+      (def t-mesh (r '(with ~env (do.breaks (range temperature) 50))))
+      (def r-mesh (r '(with ~env (do.breaks (range radiation) 3))))
+      (def grid (as-> (base/expand-grid :wind w-mesh :temperature t-mesh :radiation r-mesh) grid
+                  (r/brabra<- grid "fit.linear" :value (stats/predict fm1-env :newdata grid))
+                  (r/brabra<- grid "fit.loess.1" :value (base/as-vector (stats/predict fm2-env :newdata grid)))
+                  (r/brabra<- grid "fit.loess.2" :value (base/as-vector (stats/predict fm3-env :newdata grid)))
+                  (r/brabra<- grid "fit.locfit" :value (stats/predict fm4-env :newdata grid)))))
+
+(note-void (plot->file (str target-path "6.8.png")
+                       (-> '(formula (+ fit.linear fit.loess.1 fit.loess.2 fit.locfit)
+                                     (| (* wind temperature) radiation))
+                           (lat/wireframe grid :outer true :shade true :zlab ""))))
+(note-hiccup [:image {:src "6.8.png"}])
+
+
+(note-md "### Figure 6.9")
+(note-void (plot->file (str target-path "6.9.png")
+                       (-> '(formula (+ fit.linear fit.loess.1 fit.loess.2 fit.locfit)
+                                     (| (* wind temperature) radiation))
+                           (lat/levelplot :data grid))))
+(note-hiccup [:image {:src "6.9.png"}])
+
+(note-md "### Figure 6.10")
+(note-void (plot->file (str target-path "6.10.png")
+                       (-> '(formula fit.locfit (| (* wind temperature) radiation))
+                           (lat/contourplot grid :aspect 0.7 :layout [1 4] :cuts 15 :label.style "align"))))
+(note-hiccup [:image {:src "6.10.png"}])
+
+(note-md "### Figure 6.11")
+(note-void (plot->file (str target-path "6.11a.png")
+                       (lat/levelplot volcano)))
+(note-void (plot->file (str target-path "6.11b.png")
+                       (lat/contourplot volcano :cuts 20 :label false)))
+(note-void (plot->file (str target-path "6.11c.png")
+                       (lat/wireframe volcano :panel.aspect 0.7 :zoom 1)))
+(note-hiccup [:div
+              [:image {:src "6.11a.png"}]
+              [:image {:src "6.11b.png"}]
+              [:image {:src "6.11c.png"}]])
+
+(note-md "### Figure 6.12")
+
+(note-void
+ (def cor-cars93 (stats/cor (r/bra r.MASS/Cars93
+                                   (r/empty-symbol)
+                                   (r/r! (base/sapply r.MASS/Cars93 base/is-factor)))
+                            :use "pair")))
+
+(note-void (plot->file (str target-path "6.12.png")
+                       (-> cor-cars93
+                           (lat/levelplot :scales {:x {:rot 90}}))))
+(note-hiccup [:image {:src "6.12.png"}])
+
+(note-md "### Figure 6.13")
+
+(note-def
+ (def ord (-> cor-cars93
+              (stats/dist)
+              (stats/hclust)
+              (stats/as-dendrogram)
+              (stats/order-dendrogram))))
+
+(note-void (plot->file (str target-path "6.13.png")
+                       (-> (r/bra cor-cars93 ord ord)
+                           (lat/levelplot :at (lat/do-breaks [-1.01 1.01] 20)
+                                          :scales {:x {:rot 90}}))))
+(note-hiccup [:image {:src "6.13.png"}])
+
+(note-md "### Figure 6.14")
+
+(note (r.utils/data 'Chem97 :package "mlmRev"))
+(note-void
+ (def chem97 ($<- r.mlmRev/Chem97 'gcd
+                  '(with Chem97
+                         (cut gcsescore :breaks (quantile gcsescore (ppoints 11 :a 1))))))
+ (def chem-tab (stats/xtabs '(formula nil (+ score gcd gender)) chem97))
+ (def chem-tab-df (base/as-data-frame-table chem-tab))
+ (def tick-at (-> chem-tab-df
+                  ($ 'Freq)
+                  (base/sqrt)
+                  (base/range)
+                  (base/pretty))))
+
+(note-void (plot->file (str target-path "6.14.png")
+                       (-> '(formula (sqrt Freq) (| (* score gcd) gender))
+                           (lat/levelplot chem-tab-df
+                                          :shrink [0.7 1]
+                                          :colorkey {:labels {:at tick-at :labels (r/r** tick-at 2)}}
+                                          :aspect "iso"))))
+(note-hiccup [:image {:src "6.14.png"}])
+
+(note-md "### Figure 6.15")
+(note-void (plot->file (str target-path "6.15.png")
+                       (-> '(formula Freq (| (* score gcd) gender))
+                           (lat/cloud :data chem-tab-df
+                                      :screen {:z -40 :x -25} :zoom 1.1
+                                      :col.facet "grey" :xbase 0.7 :ybase 0.6
+                                      :par.settings {:box.3d {:col "transparent"}}
+                                      :aspect [1.5 0.75] :panel.aspect 0.75
+                                      :panel.3d.cloud late/panel-3dbars))))
+(note-hiccup [:image {:src "6.15.png"}])
+(note-md "### Figure 6.16")
+
+(note-void
+ (def grid (let [grid (base/expand-grid :u (lat/do-breaks [0.01 0.99] 25)
+                                        :v (lat/do-breaks [0.01 0.99] 25))
+                 cb (base/cbind ($ grid 'u) ($ grid 'v))]
+             (-> grid
+                 ($<- 'frank (r.copula/dCopula cb (r.copula/frankCopula 2)))
+                 ($<- 'gumbel (r.copula/dCopula cb (r.copula/gumbelCopula 1.2)))
+                 ($<- 'normal (r.copula/dCopula cb (r.copula/normalCopula 0.4)))
+                 ($<- 't (r.copula/dCopula cb (r.copula/tCopula 0.4)))))))
+
+(note-void (plot->file (str target-path "6.16.png")
+                       (-> '(formula (+ frank gumbel normal t)
+                                     (* u v))
+                           (lat/wireframe grid :outer true :zlab ""
+                                          :screen {:z -30 :x -50}))))
+(note-hiccup [:image {:src "6.16.png"}])
+
+
+(note-md "### Figure 6.17")
+(note-void (plot->file (str target-path "6.17.png")
+                       (-> '(formula (+ frank gumbel normal t)
+                                     (* u v))
+                           (lat/wireframe grid :outer true :zlab ""
+                                          :screen {:z -30 :x -50}
+                                          :scales {:z {:log true}}))))
+(note-hiccup [:image {:src "6.17.png"}])
+
+(note-md "### Figure 6.18")
+
+(note-void
+ (def rr 2)
+ (def tt 1)
+ (def n 50)
+ (def kx (<- 'kx '(function [u v] (* (cos u)
+                                     (- (+ ~rr (* (cos (/ u 2))
+                                                  (sin (* ~tt v))))
+                                        (* (sin (/ u 2))
+                                           (sin (* 2 ~tt v))))))))
+ (def ky (<- 'ky '(function [u v] (* (sin u)
+                                     (- (+ ~rr (* (cos (/ u 2))
+                                                  (sin (* ~tt v))))
+                                        (* (sin (/ u 2))
+                                           (sin (* 2 ~tt v))))))))
+ (def kz (<- 'kz '(function [u v] (+ (* (sin (/ u 2))
+                                        (sin (* ~tt v)))
+                                     (* (cos (/ u 2))
+                                        (sin (* ~tt v)))))))
+ (def u (r/r* (base/seq 0.3 1.25 :length n) 2 base/pi))
+ (def v (r/r* (base/seq 0 1 :length n) 2 base/pi))
+ (def um (<- 'um (base/matrix u (base/length u) (base/length v))))
+ (def vm (<- 'vm (base/matrix v (base/length v) (base/length u) :byrow true))))
+
+(note-void (plot->file (str target-path "6.18.png")
+                       (-> '(formula (kz um vm)
+                                     (+ (kx um vm)
+                                        (ky um vm)))
+                           (lat/wireframe :shade true
+                                          :screen {:z 170 :x -60}
+                                          :alpha 0.75 :panel.aspect 0.6 :aspect [1 0.4]))))
+(note-hiccup [:image {:src "6.18.png"}])
+
+(note-md "### Figure 6.19")
+
+(note (r.utils/str late/USAge-df))
+
+(note-void
+ (def brewer-div (dev/colorRampPalette (r.RColorBrewer/brewer-pal 11 "Spectral") :interpolate "spline")))
+
+(note-void (plot->file (str target-path "6.19.png")
+                       (-> '(formula Population (| (* Year Age) Sex))
+                           (lat/levelplot :data late/USAge-df
+                                          :cuts 199 :col.regions (brewer-div 200)
+                                          :aspect "iso"))))
+(note-hiccup [:image {:src "6.19.png"}])
+
+(note-md :Chapter-7 "## Chapter 7")
+
+(note-md "### Figure 7.1")
+
+(note-void
+ (def vad-plot (-> '(formula (reorder Var2 Freq) (| Freq Var1))
+                   (lat/dotplot :data (base/as-data-frame-table VADeaths)
+                                :origin 0 :type ["p" "h"]
+                                :main "Death Rates in Virgninia - 1940"
+                                :xlab "Number of deaths per 100"))))
+
+(note-void (plot->file (str target-path "7.1.png")
+                       vad-plot))
+(note-hiccup [:image {:src "7.1.png"}])
+
+(note-md "### Figure 7.2")
+
+(note-void (def dot-line-settings (lat/trellis-par-get "dot.line")))
+(note (r->clj dot-line-settings))
+(note-void (def dot-line-settings ($<- dot-line-settings 'col "transparent")))
+(note-void (lat/trellis-par-set "dot.line" dot-line-settings))
+
+(note-void (def plot-line-settings (lat/trellis-par-get "plot.line")))
+(note (r->clj plot-line-settings))
+(note-void (def plot-line-settings ($<- plot-line-settings 'lwd 2)))
+(note-void (lat/trellis-par-set "plot.line" plot-line-settings))
+
+(note-void (plot->file (str target-path "7.2.png")
+                       vad-plot))
+(note-hiccup [:image {:src "7.2.png"}])
+
+(note-md "### Figure 7.2 (alternative)")
+
+(note-void
+ (def panel-dotline (<- 'panel.dotline '(function [x y
+                                                   :col ($ dot.symbol col)
+                                                   :pch ($ dot.symbol pch)
+                                                   :cex ($ dot.symbol cex)
+                                                   :alpha ($ dot.symbol alpha)
+                                                   :col.line ($ plot.line col)
+                                                   :lty ($ plot.line lty)
+                                                   :lwd ($ plot.line lwd)
+                                                   :alpha.line ($ plot.line alpha)
+                                                   ...]
+                                                  (<- dot.symbol (trellis.par.get "dot.symbol"))
+                                                  (<- plot.line (trellis.par.get "plot.line"))
+                                                  (panel.segments 0 y x y :col col.line :lty lty
+                                                                  :lwd lwd :alpha alpha.line)
+                                                  (panel.points x y :col col :pch pch :cex cex :alpha alpha)))))
+
+(note-void (lat/trellis-par-set :dot.line dot-line-settings :plot.line plot-line-settings))
+(note-void (lat/trellis-par-set :dot.line {:col "transparent"} :plot.line {:lwd 2}))
+(note-void (lat/trellis-par-set {:dot.line {:col "transparent"}
+                                 :plot.line {:lwd 2}}))
+
+(note-void (plot->file (str target-path "7.2a.png")
+                       (stats/update vad-plot
+                                     :par.settings {:dot.line {:col "transparent"}
+                                                    :plot.line {:lwd 2}})))
+(note-hiccup [:image {:src "7.2a.png"}])
+
+
+(note-void
+ (def unusual ["grid.pars" "fontsize" "clip" "axis.components" "layout.heights" "layout.widths"])
+ (def tp (reduce #(r/brabra<- %1 %2 :value nil ) (lat/trellis-par-get) unusual))
+ (def names-tp (base/lapply tp base/names))
+ (def unames (-> names-tp base/unlist base/unique base/sort))
+ (def ans (let [tans (-> (base/matrix 0 :nrow (base/length names-tp) :ncol (base/length unames))
+                         (base/rownames<- (base/names names-tp))
+                         (base/colnames<- unames))]
+            (as-> (reduce
+                   #(r/bra<- %1 %2 (r/empty-symbol) (base/as-numeric (base/%in% unames (r/brabra names-tp %2))))
+                   tans (r->clj (base/seq :along names-tp))) ans
+              (r/bra ans (r/empty-symbol) `(order (- (colSums ~ans))))
+              (r/bra ans (-> ans base/rowSums base/order) (r/empty-symbol))
+              (r/bra<- ans `(== ~ans 0) 'NA)))))
+
+(note-md "### Figure 7.3")
+(note-void (plot->file (str target-path "7.3.png")
+                       (lat/levelplot (base/t ans)
+                                      :colorkey false
+                                      :scales {:x {:rot 90}}
+                                      :panel '(function [x y z ...]
+                                                        (panel.abline :v (unique (as.numeric x))
+                                                                      :h (unique (as.numeric y))
+                                                                      :col "darkgrey")
+                                                        (panel.xyplot x y :pch (* 16 z) ...))
+                                      :xlab "Graphical parameters" 
+                                      :ylab "Setting names")))
+(note-hiccup [:image {:src "7.3.png"}])
+
+(note-md "### Figure 7.4")
+(note-void (plot->file (str target-path "7.4.png")
+                       (lat/show-settings)))
+(note-hiccup [:image {:src "7.4.png"}])
+
+(comment (dev/dev-off))
 
 (comment (notespace.v2.note/compute-this-notespace!))
 
 (comment (r/discard-all-sessions))
+

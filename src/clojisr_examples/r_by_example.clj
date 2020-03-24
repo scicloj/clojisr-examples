@@ -24,7 +24,7 @@
 
 (note-md "Imports from `clojisr` library.")
 
-(note-void (require '[clojisr.v1.r :as r :refer [r r->clj clj->r r+ colon bra bra<-]]
+(note-void (require '[clojisr.v1.r :as r :refer [r r->clj clj->r r+ colon bra bra<- rdiv r** r- r*]]
                     '[clojisr.v1.require :refer [require-r]]
                     '[clojisr.v1.applications.plotting :refer [plot->file]]
                     '[tech.ml.dataset :as dataset]
@@ -96,9 +96,6 @@
 
 (note-md "We can define helper functions for primitive binary operations used above")
 
-(note-void (def r- (r "`-`"))
-           (def r* (r "`*`")))
-
 (note (r- temps 32))
 (note (r* 5/9 (r- temps 32)))
 
@@ -146,7 +143,6 @@
 
 (note (base/table taller-won))
 
-(note-void (def rdiv (r "`/`")))
 (note (-> taller-won
           (base/table)
           (rdiv 16)
@@ -169,19 +165,17 @@
 (note-void (plot->file (str target-path "ch1ex3.png") #(g/barplot x :names.arg k)))
 (note-hiccup [:image {:src "ch1ex3.png"}])
 
-(note-void (def rpow (r "`^`")))
-
 (note-def (def p (rdiv x (base/sum x))))
 (note-def (def rr (base/sum (r* p k))))
 (note-def (def v (-> (r- k rr)
-                     (rpow 2)
+                     (r** 2)
                      (r* x)
                      (base/sum)
                      (rdiv 199))))
 
 (note-def (def f1 (-> (r- rr)
                       (base/exp)
-                      (r* (rpow rr k))
+                      (r* (r** rr k))
                       (rdiv (base/factorial k))
                       (r->clj))))
 
@@ -247,8 +241,8 @@
 (note-md "#### Example 1.6 - functions as arguments")
 
 (note-void (def f (r '(function [x :a 1 :b 1]
-                                (* ("`^`" x (- a 1))
-                                   ("`^`" (- 1 x) (- b 1)))))))
+                                (* (r** x (- a 1))
+                                   (r** (- 1 x) (- b 1)))))))
 (note (let [x (base/seq 0 1 0.2)]
         (f x :a 2 :b 2)))
 
@@ -1195,7 +1189,7 @@
 
 (note-def (def S (stats/chisq-test t2)))
 (note ($ S 'expected))
-(note (base/sum (rdiv (rpow (r- t2 ($ S 'expected)) 2)
+(note (base/sum (rdiv (r** (r- t2 ($ S 'expected)) 2)
                       ($ S 'expected))))
 (note (r- 1 (stats/pchisq 54.57759 :df 9)))
 (note (base/names S))
