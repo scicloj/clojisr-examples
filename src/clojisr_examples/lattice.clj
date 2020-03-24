@@ -852,12 +852,12 @@
 
 (note-md "### Figure 6.4")
 
-(note-void (def state-info ($<- (base/data-frame :name state-name
-                                                 :long ($ state-center 'x)
-                                                 :lat ($ state-center 'y)
-                                                 :area (r/bra state-x77 (r/empty-symbol) "Area")
-                                                 :population '(* 1000 ~(r/bra state-x77 (r/empty-symbol) "Population")))
-                                'density (base/with state-info '(/ population area)))))
+(note-void (def state-info (let [state-info (base/data-frame :name state-name
+                                                             :long ($ state-center 'x)
+                                                             :lat ($ state-center 'y)
+                                                             :area (r/bra state-x77 (r/empty-symbol) "Area")
+                                                             :population '(* 1000 ~(r/bra state-x77 (r/empty-symbol) "Population")))]
+                             ($<- state-info 'density (base/with state-info '(/ population area))))))
 
 (note-void (plot->file (str target-path "6.4.png")
                        (-> '(formula density (+ long lat))
@@ -1208,6 +1208,130 @@
 (note-void (plot->file (str target-path "7.4.png")
                        (lat/show-settings)))
 (note-hiccup [:image {:src "7.4.png"}])
+
+(note-md :Chapter-8 "## Chapter 8")
+
+(note-md "### Figure 8.1")
+(note-void (plot->file (str target-path "8.1.png")
+                       (-> '(formula depth (factor mag))
+                           (lat/stripplot :data quakes
+                                          :jitter.data true
+                                          :scales {:y "free" :rot 0}
+                                          :prepanel '(function [x y ...] {:ylim (rev (range y))})
+                                          :xlab "Magnitude (Richter scale)"))))
+(note-hiccup [:image {:src "8.1.png"}])
+
+(note-md "### Figure 8.2")
+(note-void (plot->file (str target-path "8.2.png")
+                       (-> '(formula (/ counts 1000)
+                                     (| time (equal.count (as.numeric time) 9 :overlap 0.1)))
+                           (lat/xyplot late/biocAccess :type "l" :aspect "xy" :strip false
+                                       :ylab "Numer of accesses (thousands)" :xlab ""
+                                       :scales {:x {:relation "sliced" :axs "i"}
+                                                :y {:alternating false}}))))
+(note-hiccup [:image {:src "8.2.png"}])
+
+(note-md "### Figure 8.3")
+(note-void (plot->file (str target-path "8.3.png")
+                       (-> '(formula accel distance)
+                           (lat/xyplot :data r.MEMSS/Earthquake
+                                       :prepanel lat/prepanel-loess
+                                       :aspect "xy"
+                                       :type ["p" "g" "smooth"]
+                                       :scales {:log 2}
+                                       :xlab "Distance From Epicenter (km)"
+                                       :ylab "Maximum Horizontal Acceleration (g)"))))
+(note-hiccup [:image {:src "8.3.png"}])
+
+(note-md "### Figure 8.4")
+
+(note-void
+ (def yscale-components-log2 (r '(function [...]
+                                           (<- ans (yscale.components.default ...))
+                                           (<- ($ ans right) ($ ans left))
+                                           (<- ($ ans left labels labels) (parse :text ($ ans left labels labels)))
+                                           (<- ($ ans right labels labels) (~r.MASS/fractions (** 2 ($ ans right labels at))))
+                                           ans)))
+
+ (def log-ticks (r '(function [lim :loc [1 5]]
+                              (<- ii (+ (floor (log10 (range lim))) [-1 2]))
+                              (<- main (** 10 (colon (bra ii 1) (bra ii 2))))
+                              (<- r (as.numeric (outer loc main "*")))
+                              (bra r (& (<= (bra lim 1) r)
+                                        (<= r (bra lim 2)))))))
+
+ (def xscale-components-log2 (r '(function [lim ...]
+                                           (<- ans (xscale.components.default :lim lim ...))
+                                           (<- tick.at (~log-ticks (** 2 lim) :loc [1 3]))
+                                           (<- ($ ans bottom ticks at) (log tick.at 2))
+                                           (<- ($ ans bottom labels at) (log tick.at 2))
+                                           (<- ($ ans bottom labels labels) (as.character tick.at))
+                                           ans))))
+
+(note-void (plot->file (str target-path "8.4.png")
+                       (-> '(formula accel (| distance (cut Richter [4.9 5.5 6.5 7.8])))
+                           (lat/xyplot :data r.MEMSS/Earthquake
+                                       :type ["p" "g"]
+                                       :scales {:log 2 :y {:alternating 3}}
+                                       :xlab "Distance From Epicenter (km)"
+                                       :ylab "Maximum Horizontal Acceleration (g)"
+                                       :xscale.components xscale-components-log2
+                                       :yscale.components yscale-components-log2))))
+(note-hiccup [:image {:src "8.4.png"}])
+
+(note-md "### Figure 8.5")
+
+(note-void
+ (def xscale-components-log10 (r '(function [lim ...]
+                                            (<- ans (xscale.components.default :lim lim ...))
+                                            (<- tick.at (~log-ticks (** 10 lim) :loc (colon 1 9)))
+                                            (<- tick.at.major (~log-ticks (** 10 lim) :loc 1))
+                                            (<- major (%in% tick.at tick.at.major))
+                                            (<- ($ ans bottom ticks at) (log tick.at 10))
+                                            (<- ($ ans bottom ticks tck) (ifelse major 1.5 0.75))
+                                            (<- ($ ans bottom labels at) (log tick.at 10))
+                                            (<- ($ ans bottom labels labels) (as.character tick.at))
+                                            (<- (bra ($ ans bottom labels labels) (! major)) "")
+                                            (<- ($ ans bottom labels check.overlap) false)
+                                            ans))))
+
+(note-void (plot->file (str target-path "8.5.png")
+                       (-> '(formula accel distance)
+                           (lat/xyplot :data r.MEMSS/Earthquake
+                                       :prepanel lat/prepanel-loess
+                                       :aspect "xy"
+                                       :type ["p" "g"]
+                                       :scales {:log 10}
+                                       :xlab "Distance From Epicenter (km)"
+                                       :ylab "Maximum Horizontal Acceleration (g)"
+                                       :xscale.components xscale-components-log10))))
+(note-hiccup [:image {:src "8.5.png"}])
+
+(note-md "### Figure 8.6")
+
+(note-void
+ (def axis-cf (r '(function [side ...]
+                            (if (== side "right")
+                              (do
+                                (<- F2C (function [f] (/ (* 5 (- f 32)) 9)))
+                                (<- C2F (function [c] (+ 32 (/ (* 9 c) 5))))
+                                (<- ylim ($ (current.panel.limits) ylim))
+                                (<- prettyF (pretty ylim))
+                                (<- prettyC (pretty (F2C ylim)))
+                                (panel.axis :side side :outside true :at prettyF :tck 5 :line.col "grey65" :text.col "grey35")
+                                (panel.axis :side side :outside true :at (C2F prettyC) :labels (as.character prettyC)
+                                            :tck 1 :line.col "black" :text.col "black"))
+                              (axis.default :side side ...))))))
+
+(note-void (plot->file (str target-path "8.6.png")
+                       (-> '(formula nhtemp (time nhtemp))
+                           (lat/xyplot :aspect "xy" :type "o"
+                                       :scales {:y {:alternating 2 :tck [1 5]}}
+                                       :xlab "Year" :ylab "Temperature"
+                                       :main "Yearly temperature in New Haven, CT"
+                                       :key {:text [:!list ["(Celcius)" "(Fahrenheit)"] :col ["black" "grey35"]] :columns 2}
+                                       :axis axis-cf))))
+(note-hiccup [:image {:src "8.6.png"}])
 
 (comment (dev/dev-off))
 
