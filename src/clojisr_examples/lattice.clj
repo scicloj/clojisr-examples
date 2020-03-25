@@ -45,8 +45,6 @@
 
 (note (r->clj r.base/version))
 
-(comment (dev/x11 :width 9))
-
 ;; Chapter 1
 
 (note-md :Chapter-1 "## Chapter 1")
@@ -1333,9 +1331,472 @@
                                        :axis axis-cf))))
 (note-hiccup [:image {:src "8.6.png"}])
 
+(note-md :Chapter-9 "## Chapter 9")
+
+(note-md "### Figure 9.1 ")
+
+(note (base/table ($ r.MASS/Cars93 'Cylinders)))
+(note-def
+ (def sup-sym (lat/Rows (lat/trellis-par-get "superpose.symbol") (r/colon 1 5))))
+
+(note-void (plot->file (str target-path "9.1a.png")
+                       (-> '(formula Price (| EngineSize (reorder AirBags Price)))
+                           (lat/xyplot r.MASS/Cars93
+                                       :groups 'Cylinders :subset '(!= Cylinders "rotary")
+                                       :scales {:y {:log 2 :tick.number 3}}
+                                       :xlab "Engine Size (litres)"
+                                       :ylab "Average Price (1000 USD)"
+                                       :key {:text [:!list (r/bra (base/levels ($ r.MASS/Cars93 'Cylinders)) [1 2 3 4 5])]
+                                             :points sup-sym :space "right"}))))
+(note-hiccup [:image {:src "9.1a.png"}])
+
+(note-md "### Figure 9.1 (alternative, using auto.key)")
+(note-void (plot->file (str target-path "9.1b.png")
+                       (-> '(formula Price (| EngineSize (reorder AirBags Price)))
+                           (lat/xyplot r.MASS/Cars93
+                                       :groups 'Cylinders :subset '(!= Cylinders "rotary")
+                                       :scales {:y {:log 2 :tick.number 3}}
+                                       :xlab "Engine Size (litres)"
+                                       :ylab "Average Price (1000 USD)"
+                                       :auto.key {:text (r/bra (base/levels ($ r.MASS/Cars93 'Cylinders)) [1 2 3 4 5])
+                                                  :points true :space "right"}))))
+(note-hiccup [:image {:src "9.1b.png"}])
+
+(note-md "### Figure 9.1 (yet another alternative, using drop=TRUE)")
+(note-void (plot->file (str target-path "9.1c.png")
+                       (-> '(formula Price (| EngineSize (reorder AirBags Price)))
+                           (lat/xyplot :data (base/subset r.MASS/Cars93 '(!= Cylinders "rotary"))
+                                       :groups '(bra Cylinders ~(r/empty-symbol) (= drop true))
+                                       :scales {:y {:log 2 :tick.number 3}}
+                                       :xlab "Engine Size (litres)"
+                                       :ylab "Average Price (1000 USD)"
+                                       :auto.key {:space "right"}))))
+(note-hiccup [:image {:src "9.1c.png"}])
+
+(note-md "### Figure 9.2")
+
+(def my-pch [21 22 23 24 25 20])
+(def my-fill ["transparent" "grey" "black"])
+
+(note-md "We can't use `with` here. `with` creates context before function is called which is not possible in Clojure.")
+
+(note-void (plot->file (str target-path "9.2.png")
+                       (-> '(formula ($ ~r.MASS/Cars93 Price) ($ ~r.MASS/Cars93 EngineSize))
+                           (lat/xyplot :scales {:y {:log 2 :tick.number 3}}
+                                       :panel '(function [x y ... subscripts]
+                                                         (<- pch (bra ~my-pch (bra ($ ~r.MASS/Cars93 Cylinders) subscripts)))
+                                                         (<- fill (bra ~my-fill (bra ($ ~r.MASS/Cars93 AirBags) subscripts)))
+                                                         (panel.xyplot x y :pch pch :fill fill :col "black"))
+                                       :key [{:space "right" :adj 1}
+                                             {:text [:!list (base/levels ($ r.MASS/Cars93 'Cylinders))]
+                                              :points {:pch my-pch}}
+                                             {:text [:!list (base/levels ($ r.MASS/Cars93 'AirBags))]
+                                              :points {:pch 21 :fill my-fill}}
+                                             {:rep false}]))))
+(note-hiccup [:image {:src "9.2.png"}])
+
+(note-def
+ (def hc1 (-> USArrests
+              (stats/dist :method "canberra")
+              (stats/hclust)
+              (stats/as-dendrogram))))
+(note-def
+ (def ord-hc1 (stats/order-dendrogram hc1)))
+(note-def
+ (def hc2 (stats/reorder hc1 (r/bra state-region ord-hc1))))
+(note-def
+ (def ord-hc2 (stats/order-dendrogram hc2)))
+(note-def
+ (def region-colors ($ (lat/trellis-par-get "superpose.polygon") 'col)))
+
+(note-md "### Figure 9.3")
+(note-void (plot->file (str target-path "9.3.png")
+                       (lat/levelplot (r/bra (base/t (base/scale USArrests))
+                                             (r/empty-symbol) ord-hc2)
+                                      :scales {:x {:rot 90}}
+                                      :colorkey false
+                                      :legend {:right {:fun late/dendrogramGrob
+                                                       :args {:x hc2 :ord ord-hc2
+                                                              :side "right" :size 10 :size.add 0.5
+                                                              :add {:rect {:col "transparent"
+                                                                           :fill (r/bra region-colors state-region)}}
+                                                              :type "rectangle"}}})))
+(note-hiccup [:image {:src "9.3.png"}])
+
+(note-md :Chapter-10 "## Chapter 10")
+
+(note-md "### Figure 10.1")
+
+(note-def
+ (def Titanic1 (-> Titanic
+                   (r/bra (r/empty-symbol) (r/empty-symbol) "Adult" (r/empty-symbol))
+                   (base/as-table)
+                   (base/as-data-frame))))
+
+(note-void (plot->file (str target-path "10.1.png")
+                       (-> '(formula Class (| Freq Sex))
+                           (lat/barchart Titanic1
+                                         :groups 'Survived :stack true
+                                         :auto.key {:title "Survived" :columns 2}))))
+(note-hiccup [:image {:src "10.1.png"}])
+
+(note-md "### Figure 10.2")
+
+(note-def
+ (def Titanic2 (-> (stats/reshape Titanic1 :direction "wide" :v.names "Freq"
+                                  :idvar ["Class" "Sex"] :timevar "Survived")
+                   (base/names<- ["Class" "Sex" "Dead" "Alive"]))))
+
+(note-void (plot->file (str target-path "10.2.png")
+                       (-> '(formula Class (| (+ Dead Alive) Sex))
+                           (lat/barchart Titanic2 :stack true
+                                         :auto.key {:columns 2}))))
+(note-hiccup [:image {:src "10.2.png"}])
+
+(note-md "### Figure 10.3")
+(note-void (plot->file (str target-path "10.3.png")
+                       (-> '(formula written (| course gender))
+                           (lat/xyplot :data r.mlmRev/Gcsemv
+                                       :type ["g" "p" "smooth"]
+                                       :xlab "Coursework score" :ylab "Written exam score"
+                                       :panel '(function [x y ...]
+                                                         (panel.xyplot x y ...)
+                                                         (panel.rug :x (bra x (is.na y))
+                                                                    :y (bra y (is.na x))))))))
+(note-hiccup [:image {:src "10.3.png"}])
+
+(note-md "### Figure 10.4")
+(note-void (plot->file (str target-path "10.4.png")
+                       (-> '(formula nil (+ written course))
+                           (lat/qqmath r.mlmRev/Gcsemv
+                                       :type ["p" "g"]
+                                       :outer true
+                                       :groups 'gender
+                                       :auto.key {:columns 2}))))
+(note-hiccup [:image {:src "10.4.png"}])
+
+(note-md "### Figure 10.5")
+
+(note-void (base/set-seed 200510128)
+           (def x1 (let [x1 (stats/rexp 2000)]
+                     (r/bra x1 `(> ~x1 1))))
+           (def x2 (stats/rexp 1000)))
+
+(note-void (plot->file (str target-path "10.5.png")
+                       (-> '(formula nil data)
+                           (lat/qqmath (lat/make-groups :x1 x1 :x2 x2)
+                                       :groups 'which
+                                       :distribution stats/qexp :aspect "iso"
+                                       :type ["p" "g"]
+                                       :xlab "exp"))))
+(note-hiccup [:image {:src "10.5.png"}])
+
+(note-md "### Figure 10.6")
+
+(note-void
+ (def beavers (let [beavers (lat/make-groups :beaver1 beaver1 :beaver2 beaver2)]
+                ($<- beavers 'hour
+                     (base/with beavers '(+ ("`%/%`" time 100)
+                                            (* 24 (- day 307))
+                                            (/ (%% time 100) 60)))))))
+
+(note-void (plot->file (str target-path "10.6.png")
+                       (-> '(formula temp (| hour which))
+                           (lat/xyplot :data beavers
+                                       :groups 'activ
+                                       :auto.key {:text ["inactive" "active"]
+                                                  :columns 2}
+                                       :xlab "Time (hours)" :ylab "Body Temperature (C)" 
+                                       :scale {:x {:relation "sliced"}}))))
+(note-hiccup [:image {:src "10.6.png"}])
+
+
+(note (r.utils/head late/USAge-df))
+
+(note-md "### Figure 10.7")
+(note-void (plot->file (str target-path "10.7.png")
+                       (-> '(formula Population (| Age (factor Year)))
+                           (lat/xyplot late/USAge-df
+                                       :groups 'Sex :type ["l" "g"]
+                                       :auto.key {:points false :lines true :columns 2}
+                                       :aspect "xy" :ylab "Population (millions)"
+                                       :subset '(%in% Year (seq 1905 1975 :by 10))))))
+(note-hiccup [:image {:src "10.7.png"}])
+
+(note-md "### Figure 10.8")
+(note-void (plot->file (str target-path "10.8.png")
+                       (-> '(formula Population (| Year (factor Age)))
+                           (lat/xyplot late/USAge-df
+                                       :groups 'Sex :type "l"
+                                       :strip false :strip.left true
+                                       :layout [1 3] :ylab "Population (millions)"
+                                       :auto.key {:points false :lines true :columns 2}
+                                       :subset '(%in% Age [0 10 20])))))
+(note-hiccup [:image {:src "10.8.png"}])
+
+(note-md "### Figure 10.9")
+(note-void (plot->file (str target-path "10.9.png")
+                       (-> '(formula Population (| Year (factor (- Year Age))))
+                           (lat/xyplot late/USAge-df
+                                       :groups 'Sex :subset '(%in% (- Year Age) (colon 1894 1905))
+                                       :type ["g" "l"] :ylab "Population (millions)"
+                                       :auto.key {:points false :lines true :columns 2}))))
+(note-hiccup [:image {:src "10.9.png"}])
+
+(note-md "### Figure 10.10")
+(note-void (plot->file (str target-path "10.10.png")
+                       (-> '(formula stations mag)
+                           (lat/xyplot quakes :jitter.x true
+                                       :type ["p" "smooth"]
+                                       :xlab "Magnitude (Richter)"
+                                       :ylab "Number of stations reporting"))))
+(note-hiccup [:image {:src "10.10.png"}])
+
+
+(note-md "### Figure 10.11")
+
+(note-void (def quakes ($<- quakes 'Mag (lat/equal-count ($ quakes 'mag) :number 10 :overlap 0.2)))
+
+           (def ps-mag (g/plot ($ quakes 'Mag)
+                               :ylab "Level",
+                               :xlab "Magnitude (Richter)"))
+           (def bwp-quakes (lat/bwplot '(formula stations Mag) quakes
+                                       :xlab "Magnitude", 
+                                       :ylab "Number of stations reporting")))
+
+(note-void (plot->file (str target-path "10.11.png")
+                       (fn []
+                         (g/plot bwp-quakes :position [0 0 1 0.65])
+                         (g/plot ps-mag :position [0 0.65 1 1] :newpage false))))
+(note-hiccup [:image {:src "10.11.png"}])
+
+(note-md "### Figure 10.12")
+(note-void (plot->file (str target-path "10.12.png")
+                       (-> '(formula (sqrt stations) Mag)
+                           (lat/bwplot quakes
+                                       :scales {:x {:limits (-> quakes ($ 'Mag) base/levels base/as-character)
+                                                    :rot 60}}
+                                       :xlab "Magnitude (Richter)",
+                                       :ylab '(expression (sqrt "Number of stations"))))))
+(note-hiccup [:image {:src "10.12.png"}])
+
+(note-md "### Figure 10.13")
+(note-void (plot->file (str target-path "10.13.png")
+                       (-> '(formula nil (| (sqrt stations) Mag))
+                           (lat/qqmath quakes
+                                       :type ["p" "g"]
+                                       :pch "." :cex 3
+                                       :prepanel lat/prepanel-qqmathline
+                                       :aspect "xy"
+                                       :strip (lat/strip-custom :strip.levels true
+                                                                :strip.names false)
+                                       :xlab "Standard normal quantiles" 
+                                       :ylab '(expression (sqrt "Number of stations"))))))
+(note-hiccup [:image {:src "10.13.png"}])
+
+(note-md "### Figure 10.14")
+(note-void (plot->file (str target-path "10.14.png")
+                       (-> '(formula (sqrt stations) mag)
+                           (lat/xyplot quakes
+                                       :cex 0.6
+                                       :panel lat/panel-bwplot
+                                       :horizontal false
+                                       :box.ratio 0.05
+                                       :xlab "Magnitude (Richter)"
+                                       :ylab '(expression (sqrt "Number of stations"))))))
+(note-hiccup [:image {:src "10.14.png"}])
+
+(note-md "### Figure 10.15")
+
+(note-void
+ (def state-density (let [sd (base/data-frame :name state-name
+                                              :area (r/bra state-x77 (r/empty-symbol) "Area")
+                                              :population (r/bra state-x77 (r/empty-symbol) "Population")
+                                              :region state-region)]
+                      ($<- sd 'density (base/with sd '(/ population area))))))
+
+(note-void (plot->file (str target-path "10.15.png")
+                       (-> '(formula (reorder name density) density)
+                           (lat/dotplot state-density
+                                        :xlab "Population Density (thousands per square mile)"))))
+(note-hiccup [:image {:src "10.15.png"}])
+
+(note-md "### Figure 10.16")
+
+(note-void
+ (def state-density ($<- state-density 'Density
+                         (lat/shingle ($ state-density 'density)
+                                      :intervals (base/rbind [0 0.2] [0.2 1])))))
+
+(note-void (plot->file (str target-path "10.16.png")
+                       (-> '(formula (reorder name density) (| density Density))
+                           (lat/dotplot state-density
+                                        :strip false :latout [2 1] :levels.fos (r/colon 1 50)
+                                        :scales {:x "free"} :between {:x 0.5}
+                                        :xlab "Population Density (thousands per square mile)"
+                                        :par.settings {:layout.widths {:panel [2 1]}}))))
+(note-hiccup [:image {:src "10.16.png"}])
+
+(note-md "### Figure 10.17")
+
+(def cut-and-stack (r '(function [x :number 6 :overlap 0.1 :type "l" :xlab "Time"
+                                  :ylab (deparse (substitute x)) ...]
+                                 (<- time (if (is.ts x)
+                                            (time x)
+                                            (seq_along x)))
+                                 (<- Time (equal.count (as.numeric time) :number number :overlap overlap))
+                                 (xyplot (formula (as.numeric x) (| time Time))
+                                         :type type :xlab xlab :ylab ylab
+                                         :default.scales {:x {:relation "free"}
+                                                          :y {:relation "free"}}
+                                         ...))))
+
+(note-void (plot->file (str target-path "10.17.png")
+                       (cut-and-stack (r/bra EuStockMarkets (r/empty-symbol) "DAX")
+                                      :aspect "xy"
+                                      :scales {:x {:draw false}
+                                               :y {:rot 0}}
+                                      :ylab "EuStockMarkets[,\\\"DAX\\\"]")))
+(note-hiccup [:image {:src "10.17.png"}])
+
+(note-md "### Figure 10.18")
+
+(note-void (def bdp1 (-> '(formula (as.character variety)
+                                   (| yield (as.character site)))
+                         (lat/dotplot lat/barley
+                                      :groups 'year :layout [1 6]
+                                      :auto.key {:space "top"
+                                                 :columns 2}
+                                      ;; :strip false :strip.left true
+                                      :aspect "fill")))
+
+           (def bdp2 (-> '(formula variety (| yield site))
+                         (lat/dotplot lat/barley
+                                      :groups 'year :layout [1 6]
+                                      :auto.key {:space "top"
+                                                 :columns 2}
+                                      ;; :strip false :strip.left true
+                                      ))))
+
+(note-void (plot->file (str target-path "10.18.png")
+                       (fn []
+                         (g/plot bdp1 :split [1 1 2 1])
+                         (g/plot bdp2 :split [2 1 2 1] :newpage false))))
+(note-hiccup [:image {:src "10.18.png"}])
+
+(note-md "### Figure 10.19")
+
+(note-void
+ (def state-density (let [sd (base/data-frame :name state-name
+                                              :area (r/bra state-x77 (r/empty-symbol) "Area")
+                                              :population (r/bra state-x77 (r/empty-symbol) "Population")
+                                              :region state-region)]
+                      ($<- sd 'density (base/with sd '(/ population area))))))
+
+(note-void (plot->file (str target-path "10.19.png")
+                       (-> '(formula (reorder name density)
+                                     (* 1000 density))
+                           (lat/dotplot state-density
+                                        :scale {:x {:log 10}}
+                                        :xlab "Density (per square mile)"))))
+(note-hiccup [:image {:src "10.19.png"}])
+
+(note-md "### Figure 10.20")
+
+(note-void
+ (def state-density (-> state-density
+                        ($<- 'region (base/with state-density '(reorder region density median)))
+                        ($<- 'name (base/with state-density '(reorder (reorder name density) (as.numeric region)))))))
+
+(note-void (plot->file (str target-path "10.20.png")
+                       (-> '(formula name (| (* 1000 density) region))
+                           (lat/dotplot state-density
+                                        :strip false :strip.left true
+                                        :layout [1 4]
+                                        :scales {:x {:log 10}
+                                                 :y {:relation "free"}}
+                                        :xlab "Density (per square mile)"))))
+(note-hiccup [:image {:src "10.20.png"}])
+
+(note-md "### Figure 10.21")
+
+(note-md "`late/resizePanels` works only when using viewport")
+
+(note-md "### Figure 10.22")
+(note-void (plot->file (str target-path "10.22.png")
+                       (-> '(formula rate.male (| rate.female state))
+                           (lat/xyplot late/USCancerRates
+                                       :aspect "iso" :pch "." :cex 2
+                                       :index.cond '(function [x y] (median (- y x) :na.rm true))
+                                       :scales {:log 2 :at [75 150 300 600]}
+                                       :panel '(function [...]
+                                                         (panel.grid :h -1 :v -1)
+                                                         (panel.abline 0 1)
+                                                         (panel.xyplot ...))))))
+(note-hiccup [:image {:src "10.22.png"}])
+
+(note-md "### Figure 10.23")
+
+(note-def
+ (def strip-style4 (r '(function [... style]
+                                 (strip.default ... :style 4)))))
+
+(note-void (plot->file (str target-path "10.23.png")
+                       (-> '(formula nil (| gcsescore (factor score)))
+                           (lat/qqmath r.mlmRev/Chem97
+                                       :groups 'gender
+                                       :type ["l" "g"] :aspect "xy"
+                                       :auto.key {:points false :lines true :columns 2}
+                                       :f.value (stats/ppoints 100) :strip strip-style4))))
+
+(note-hiccup [:image {:src "10.23.png"}])
+
+(note-md "### Figure 10.24")
+
+(note-def
+ (def strip-combined (r '(function [which.given which.panel factor.levels ...]
+                                   (if (== which.given 1)
+                                     (do (panel.rect 0 0 1 1 :col "grey90" :border 1)
+                                         (panel.text :x 0 :y 0.5 :pos 4
+                                                     :lab (bra factor.levels (bra which.panel which.given)))))
+                                   (if (== which.given 2)
+                                     (panel.text :x 1 :y 0.5 :pos 2
+                                                 :lab (bra factor.levels (bra which.panel which.given))))))))
+
+(note-void (plot->file (str target-path "10.24.png")
+                       (-> '(formula nil (+ (| gcsescore (factor score)) gender))
+                           (lat/qqmath r.mlmRev/Chem97
+                                       :f.value (stats/ppoints 100)
+                                       :type ["l" "g"] :aspect "xy"
+                                       :strip strip-combined
+                                       :par.strip.text {:lines 0.5}
+                                       :xlab "Standard normal quantiles"
+                                       :ylab "Average GCSE score"))))
+(note-hiccup [:image {:src "10.24.png"}])
+
+(note-md "### Figure 10.25")
+
+(note-void
+ (def barley (let [morris (r/r== ($ lat/barley 'site) "Morris")]
+               (r `(<- (bra ($ barley year) ~morris)
+                       (ifelse (== (bra ($ barley year) ~morris) "1931") "1932" "1931")))
+               (r 'barley))))
+
+(note-void (plot->file (str target-path "10.25.png")
+                       (-> '(formula (sqrt (abs (residuals (lm (formula yield (+ variety year site))))))
+                                     site)
+                           (lat/stripplot :data barley
+                                          :groups 'year
+                                          :jitter.data true
+                                          :auto.key {:points true :lines true :columns 2}
+                                          :type ["p" "a"]
+                                          :fun stats/median
+                                          :ylab (r "(expression(abs('Residual Barley Yield')^{1/2}))")))))
+(note-hiccup [:image {:src "10.25.png"}])
+
+(comment (dev/x11 :width 9))
 (comment (dev/dev-off))
 
 (comment (notespace.v2.note/compute-this-notespace!))
 
 (comment (r/discard-all-sessions))
-
