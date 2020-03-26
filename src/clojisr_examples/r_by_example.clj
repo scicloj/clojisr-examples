@@ -241,8 +241,8 @@
 (note-md "#### Example 1.6 - functions as arguments")
 
 (note-void (def f (r '(function [x :a 1 :b 1]
-                                (* (r** x (- a 1))
-                                   (r** (- 1 x) (- b 1)))))))
+                                (* (** x (- a 1))
+                                   (** (- 1 x) (- b 1)))))))
 (note (let [x (base/seq 0 1 0.2)]
         (f x :a 2 :b 2)))
 
@@ -277,7 +277,7 @@
 (note-def (def P2 (base/%*% P P)))
 
 (note (bra P2 1 3))
-(note (bra P2 1 (r/empty-symbol)))
+(note (bra P2 1 nil))
 
 (note (let [P4 (base/%*% P2 P2)
             P8 (base/%*% P4 P4)]
@@ -309,7 +309,7 @@
 
 (note (base/summary USArrests))
 (note (bra USArrests "California" "Murder"))
-(note (bra USArrests "California" (r/empty-symbol)))
+(note (bra USArrests "California" nil))
 (note ($ USArrests 'Assault))
 
 (note-void (plot->file (str target-path "ch1ex9.png") #(g/hist ($ USArrests 'Assault)
@@ -676,7 +676,7 @@
 
 (note (base/mean ($ brain 'Weight)))
 (note (base/mean ($ brain 'Weight) :na.rm true))
-(note (base/by :data (bra brain (r/empty-symbol) -1)
+(note (base/by :data (bra brain nil -1)
                :INDICES ($ brain 'Gender)
                :FUN base/colMeans
                :na.rm true))
@@ -692,16 +692,16 @@
                                                                        :inset 0.02)))))
 (note-hiccup [:image {:src "ch2ex23.png"}])
 
-(note-void (plot->file (str target-path "ch2ex23b.png") #(g/pairs (bra brain (r/empty-symbol) (colon 2 7)))))
+(note-void (plot->file (str target-path "ch2ex23b.png") #(g/pairs (bra brain nil (colon 2 7)))))
 (note-hiccup [:image {:src "ch2ex23b.png"}])
 
 (note (-> brain
-          (bra (r/empty-symbol) (colon 2 7))
+          (bra nil (colon 2 7))
           (stats/cor)
           (base/round 2)))
 
 (note (-> brain
-          (bra (r/empty-symbol) (colon 2 7))
+          (bra nil (colon 2 7))
           (stats/cor :use "pairwise.complete.obs")
           (base/round 2)))
 
@@ -717,14 +717,14 @@
 (note-md "### 2.3.5 - Identifying missing values")
 
 (note (base/which (base/is-na brain) :arr.ind true))
-(note (bra brain [2 21] (r/empty-symbol)))
+(note (bra brain [2 21] nil))
 
 (note (let [mw (base/mean ($ brain 'Weight) :na.rm true)
             mh (base/mean ($ brain 'Height) :na.rm true)]
         (-> brain
             (bra<- 2 5 mw)
             (bra<- 21 (colon 5 6) (base/c mw mh))
-            (bra [2 21] (r/empty-symbol)))))
+            (bra [2 21] nil))))
 
 (note-md "## 2.4 - Time Series Data")
 (note-md "#### Example 2.4 - New Haven temperatures")
@@ -815,34 +815,34 @@
 (note-md "### 2.7.2 - Which observation is the maximum?")
 
 (note (base/which (r/r> ($ mammals 'body) 2000)))
-(note (bra mammals [19 33] (r/empty-symbol)))
+(note (bra mammals [19 33] nil))
 (note (base/max ($ mammals 'body)))
 (note (base/which-max ($ mammals 'body)))
-(note (bra mammals 33 (r/empty-symbol)))
+(note (bra mammals 33 nil))
 (note (base/which-min ($ mammals 'body)))
-(note (bra mammals 14 (r/empty-symbol)))
+(note (bra mammals 14 nil))
 
 (note-md "### 2.7.3 - Sorting a data frame")
 (note-md "#### Example 2.8 - Sorting mammals")
 
-(note-def (def x (bra mammals (colon 1 5) (r/empty-symbol))))
+(note-def (def x (bra mammals (colon 1 5) nil)))
 (note-def (def o (base/order ($ x 'body))))
-(note (bra x o (r/empty-symbol)))
+(note (bra x o nil))
 
 (note (let [o (base/order ($ mammals 'body))
-            sorted-data (bra mammals o (r/empty-symbol))]
+            sorted-data (bra mammals o nil)]
         (u/tail sorted-data 3)))
 
 (note-md "### 2.7.4 - Distances between points")
 (note-md "#### Example 2.9 - Distances between points")
 
-(note-def (def x (bra r.MASS/mammals (colon 1 5) (r/empty-symbol))))
+(note-def (def x (bra r.MASS/mammals (colon 1 5) nil)))
 (note (stats/dist x))
 (note (-> x stats/dist base/as-matrix))
 
 (note-def (def y (base/log (bra r.MASS/mammals
                                 ["Grey wolf", "Cow", "Human"]
-                                (r/empty-symbol)))))
+                                nil))))
 
 (note-void (plot->file (str target-path "ch2ex29.png") (fn []
                                                          (g/plot (base/log ($ r.MASS/mammals 'body))
@@ -868,7 +868,7 @@
 
 (note (u/head ($ h 'merge)))
 (note (bra (base/rownames r.MASS/mammals) [22 28]))
-(note (bra (base/log r.MASS/mammals) [22 28] (r/empty-symbol)))
+(note (bra (base/log r.MASS/mammals) [22 28] nil))
 
 (note-md "## Exercises")
 
@@ -879,7 +879,7 @@
 
 (note-md "### Exercise 2.2 - `iris` data")
 
-(note (base/by :data (bra iris (r/empty-symbol) [1 2 3 4])
+(note (base/by :data (bra iris nil [1 2 3 4])
                :INDICES ($ iris 'Species)
                :FUN base/colMeans
                :na.rm true))
@@ -901,7 +901,7 @@
                                                      ($ r.MASS/mammals 'body)))))
 
 (note-void (def sorted-mammals (let [o (base/order ($ mammals 'r))]
-                                 (bra mammals o (r/empty-symbol)))))
+                                 (bra mammals o nil))))
 
 (note (u/head sorted-mammals 5))
 (note (u/tail sorted-mammals 5))
@@ -1022,7 +1022,7 @@
 
 (note-void (def sorted-mammals-by-brain
              (let [o (base/order ($ mammals 'brain))]
-               (bra mammals o (r/empty-symbol)))))
+               (bra mammals o nil))))
 
 (note (u/tail sorted-mammals-by-brain 5))
 (note (u/head sorted-mammals-by-brain 5))
@@ -1031,7 +1031,7 @@
 
 (note-def (def y (bra r.MASS/mammals
                       ["Cat", "Cow", "Human"]
-                      (r/empty-symbol))))
+                      nil)))
 
 (note-void (plot->file (str target-path "ex213.png") (fn []
                                                        (g/plot ($ r.MASS/mammals 'body)
@@ -1055,7 +1055,7 @@
 
 (note-def (def g (stats/cutree h 5)))
 (note (base/table g))
-(note (bra r.MASS/mammals (r/r== g 5) (r/empty-symbol)))
+(note (bra r.MASS/mammals (r/r== g 5) nil))
 
 (note-md :Chapter-3---Categorical-data "# Chapter 3 - Categorical data")
 (note-md "## 3.1 - Introduction")

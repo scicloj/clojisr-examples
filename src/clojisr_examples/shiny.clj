@@ -20,9 +20,9 @@
         (s/sliderInput
          "obs"
          "Number of observations"
-         '(= min 1)
-         '(= max 1000)
-         '(= value 500)))
+         :min 1
+         :max 1000
+         :value 500))
        (s/mainPanel
         (s/plotOutput "distPlot")))))
     (s/shinyServer

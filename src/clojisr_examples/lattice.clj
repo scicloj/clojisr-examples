@@ -8,7 +8,7 @@
 
 ;; Be sure to install following packages:
 ;;
-;; install.packages(c("lattice", "latticeExtra", "mlmrev", "MEMSS", "locfit", "hexbin", "maps", "copula"))
+;; install.packages(c("lattice", "latticeExtra", "mlmrev", "MEMSS", "locfit", "hexbin", "maps", "copula", "logspline"))
 
 (note/defkind note-def :def {:render-src?    true
                              :value-renderer (comp notespace.v2.view/value->hiccup var-get)})
@@ -17,7 +17,17 @@
 
 (note-md "# Lattice")
 
-(note-md "Examples from the page: http://lmdvr.r-forge.r-project.org/figures/figures.html")
+(note-md "Examples from the Lattice book [page](http://lmdvr.r-forge.r-project.org/figures/figures.html)")
+
+(note-md "Please be sure to install following packages.")
+
+(note-md "```r
+install.packages(c('latticeExtra', 'copula', 'ellipse', 'gridBase',
+                   'locfit', 'logspline', 'mapproj', 'maps', 'MEMSS',
+                   'mlmRev', 'RColorBrewer'))
+source('http://bioconductor.org/biocLite.R')
+biocLite(c('flowCore', 'flowViz', 'hexbin'))
+```")
 
 (note-md :Setup "## Setup")
 
@@ -39,8 +49,12 @@
                       '[locfit]
                       '[hexbin]
                       '[maps]
+                      '[mapproj]
                       '[copula]
+                      '[logspline]
                       '[RColorBrewer]
+                      '[flowViz]
+                      '[flowCore]
                       '[datasets :refer :all]))
 
 (note (r->clj r.base/version))
@@ -149,7 +163,7 @@
 ;;     :index.cond [[1 2 3] [1 2 3 4 5 6]],
 ;;     :perm.cond [1 2]}
 
-(note (r->clj (base/summary (r/bra tp1-oats (r/empty-symbol) 1))))
+(note (r->clj (base/summary (r/bra tp1-oats nil 1))))
 ;; => {:call
 ;;     [xyplot
 ;;      [$ .MEM xf2107be653ea406e]
@@ -178,7 +192,7 @@
 ;;     :index.cond [[1 2 3] [1]],
 ;;     :perm.cond [1 2]}
 
-(note-void (plot->file (str target-path "2.2.png") (r/bra tp1-oats (r/empty-symbol) 1)))
+(note-void (plot->file (str target-path "2.2.png") (r/bra tp1-oats nil 1)))
 (note-hiccup [:image {:src "2.2.png"}])
 
 (note-md "### Figure 2.3")
@@ -559,7 +573,7 @@
 
 (note-void (plot->file (str target-path "5.4.png")
                        (-> '(formula lat long)
-                           (lat/xyplot :data (r/bra quakes depth-ord (r/empty-symbol)) :aspect "iso"
+                           (lat/xyplot :data (r/bra quakes depth-ord nil) :aspect "iso"
                                        :type ["p" "g"] :col "black"
                                        :pch 21 :cex 2 :fill (r/bra depth-col depth-ord)
                                        :xlab "Longitude" :ylab "Latitude"))))
@@ -574,7 +588,7 @@
 
 (note (base/summary ($ quakes 'Magnitude)))
 
-(note-void (def quakes-ordered (r/bra quakes depth-ord (r/empty-symbol))))
+(note-void (def quakes-ordered (r/bra quakes depth-ord nil)))
 
 (note-void (plot->file (str target-path "5.5.png")
                        (-> '(formula lat (| long Magnitude))
@@ -634,10 +648,10 @@
                                               :layout [5 3]
                                               :between {:y [0 1]}
                                               :strip '(function [...]
-                                                                (panel.fill (bra (~$ (trellis.par.get "strip.background") col) 1))
+                                                                (grid.rect)
+                                                                (panel.fill (bra ($ (trellis.par.get "strip.background") col) 1))
                                                                 (<- type (bra ~types (panel.number)))
-                                                                (grid.text :lab (sprintf "%s" type) :x 0.5 :y 0.5)
-                                                                (grid.rect))
+                                                                (grid.text :lab (sprintf "%s" type) :x 0.5 :y 0.5))
                                               :scales {:alternating [0 2] :tck [0 0.7] :draw false}
                                               :par.settings {:layout.widths {:strip.left [1 0 0 0 0]}}
                                               :panel '(function [...]
@@ -853,8 +867,8 @@
 (note-void (def state-info (let [state-info (base/data-frame :name state-name
                                                              :long ($ state-center 'x)
                                                              :lat ($ state-center 'y)
-                                                             :area (r/bra state-x77 (r/empty-symbol) "Area")
-                                                             :population '(* 1000 ~(r/bra state-x77 (r/empty-symbol) "Population")))]
+                                                             :area (r/bra state-x77 nil "Area")
+                                                             :population '(* 1000 (bra state.x77 nil "Population")))]
                              ($<- state-info 'density (base/with state-info '(/ population area))))))
 
 (note-void (plot->file (str target-path "6.4.png")
@@ -881,8 +895,8 @@
                                                                (scaled.val ($ ~state-map y) ylim ylim.scaled)
                                                                (bra zlim.scaled 1))
                                                         rot.mat distance))
-                                (panel.lines (bra m 1 ~(r/empty-symbol))
-                                             (bra m 2 ~(r/empty-symbol))
+                                (panel.lines (bra m 1 nil)
+                                             (bra m 2 nil)
                                              :col "grey76")))))
 
 (note-void (plot->file (str target-path "6.5.png")
@@ -977,7 +991,7 @@
 
 (note-void
  (def cor-cars93 (stats/cor (r/bra r.MASS/Cars93
-                                   (r/empty-symbol)
+                                   nil
                                    (r/r! (base/sapply r.MASS/Cars93 base/is-factor)))
                             :use "pair")))
 
@@ -1003,7 +1017,8 @@
 
 (note-md "### Figure 6.14")
 
-(note (r.utils/data 'Chem97 :package "mlmRev"))
+(note (r/data 'Chem97 "mlmRev"))
+
 (note-void
  (def chem97 ($<- r.mlmRev/Chem97 'gcd
                   '(with Chem97
@@ -1172,23 +1187,23 @@
                                                     :plot.line {:lwd 2}})))
 (note-hiccup [:image {:src "7.2a.png"}])
 
+(note-md "### Figure 7.3")
 
 (note-void
  (def unusual ["grid.pars" "fontsize" "clip" "axis.components" "layout.heights" "layout.widths"])
- (def tp (reduce #(r/brabra<- %1 %2 :value nil ) (lat/trellis-par-get) unusual))
+ (def tp (reduce #(r/brabra<- %1 %2 :value nil) (lat/trellis-par-get) unusual))
  (def names-tp (base/lapply tp base/names))
  (def unames (-> names-tp base/unlist base/unique base/sort))
  (def ans (let [tans (-> (base/matrix 0 :nrow (base/length names-tp) :ncol (base/length unames))
                          (base/rownames<- (base/names names-tp))
                          (base/colnames<- unames))]
             (as-> (reduce
-                   #(r/bra<- %1 %2 (r/empty-symbol) (base/as-numeric (base/%in% unames (r/brabra names-tp %2))))
+                   #(r/bra<- %1 %2 nil (base/as-numeric (base/%in% unames (r/brabra names-tp %2))))
                    tans (r->clj (base/seq :along names-tp))) ans
-              (r/bra ans (r/empty-symbol) `(order (- (colSums ~ans))))
-              (r/bra ans (-> ans base/rowSums base/order) (r/empty-symbol))
+              (r/bra ans nil `(order (- (colSums ~ans))))
+              (r/bra ans (-> ans base/rowSums base/order) nil)
               (r/bra<- ans `(== ~ans 0) 'NA)))))
 
-(note-md "### Figure 7.3")
 (note-void (plot->file (str target-path "7.3.png")
                        (lat/levelplot (base/t ans)
                                       :colorkey false
@@ -1366,7 +1381,7 @@
 (note-void (plot->file (str target-path "9.1c.png")
                        (-> '(formula Price (| EngineSize (reorder AirBags Price)))
                            (lat/xyplot :data (base/subset r.MASS/Cars93 '(!= Cylinders "rotary"))
-                                       :groups '(bra Cylinders ~(r/empty-symbol) (= drop true))
+                                       :groups '(bra Cylinders nil (= drop true))
                                        :scales {:y {:log 2 :tick.number 3}}
                                        :xlab "Engine Size (litres)"
                                        :ylab "Average Price (1000 USD)"
@@ -1395,6 +1410,8 @@
                                              {:rep false}]))))
 (note-hiccup [:image {:src "9.2.png"}])
 
+(note-md "### Figure 9.3")
+
 (note-def
  (def hc1 (-> USArrests
               (stats/dist :method "canberra")
@@ -1409,10 +1426,9 @@
 (note-def
  (def region-colors ($ (lat/trellis-par-get "superpose.polygon") 'col)))
 
-(note-md "### Figure 9.3")
 (note-void (plot->file (str target-path "9.3.png")
                        (lat/levelplot (r/bra (base/t (base/scale USArrests))
-                                             (r/empty-symbol) ord-hc2)
+                                             nil ord-hc2)
                                       :scales {:x {:rot 90}}
                                       :colorkey false
                                       :legend {:right {:fun late/dendrogramGrob
@@ -1429,7 +1445,7 @@
 
 (note-def
  (def Titanic1 (-> Titanic
-                   (r/bra (r/empty-symbol) (r/empty-symbol) "Adult" (r/empty-symbol))
+                   (r/bra nil nil "Adult" nil)
                    (base/as-table)
                    (base/as-data-frame))))
 
@@ -1610,8 +1626,8 @@
 
 (note-void
  (def state-density (let [sd (base/data-frame :name state-name
-                                              :area (r/bra state-x77 (r/empty-symbol) "Area")
-                                              :population (r/bra state-x77 (r/empty-symbol) "Population")
+                                              :area (r/bra state-x77 nil "Area")
+                                              :population (r/bra state-x77 nil "Population")
                                               :region state-region)]
                       ($<- sd 'density (base/with sd '(/ population area))))))
 
@@ -1639,20 +1655,21 @@
 
 (note-md "### Figure 10.17")
 
-(def cut-and-stack (r '(function [x :number 6 :overlap 0.1 :type "l" :xlab "Time"
-                                  :ylab (deparse (substitute x)) ...]
-                                 (<- time (if (is.ts x)
-                                            (time x)
-                                            (seq_along x)))
-                                 (<- Time (equal.count (as.numeric time) :number number :overlap overlap))
-                                 (xyplot (formula (as.numeric x) (| time Time))
-                                         :type type :xlab xlab :ylab ylab
-                                         :default.scales {:x {:relation "free"}
-                                                          :y {:relation "free"}}
-                                         ...))))
+(note-void
+ (def cut-and-stack (r '(function [x :number 6 :overlap 0.1 :type "l" :xlab "Time"
+                                   :ylab (deparse (substitute x)) ...]
+                                  (<- time (if (is.ts x)
+                                             (time x)
+                                             (seq_along x)))
+                                  (<- Time (equal.count (as.numeric time) :number number :overlap overlap))
+                                  (xyplot (formula (as.numeric x) (| time Time))
+                                          :type type :xlab xlab :ylab ylab
+                                          :default.scales {:x {:relation "free"}
+                                                           :y {:relation "free"}}
+                                          ...)))))
 
 (note-void (plot->file (str target-path "10.17.png")
-                       (cut-and-stack (r/bra EuStockMarkets (r/empty-symbol) "DAX")
+                       (cut-and-stack (r/bra EuStockMarkets nil "DAX")
                                       :aspect "xy"
                                       :scales {:x {:draw false}
                                                :y {:rot 0}}
@@ -1688,8 +1705,8 @@
 
 (note-void
  (def state-density (let [sd (base/data-frame :name state-name
-                                              :area (r/bra state-x77 (r/empty-symbol) "Area")
-                                              :population (r/bra state-x77 (r/empty-symbol) "Population")
+                                              :area (r/bra state-x77 nil "Area")
+                                              :population (r/bra state-x77 nil "Population")
                                               :region state-region)]
                       ($<- sd 'density (base/with sd '(/ population area))))))
 
@@ -1793,6 +1810,468 @@
                                           :fun stats/median
                                           :ylab (r "(expression(abs('Residual Barley Yield')^{1/2}))")))))
 (note-hiccup [:image {:src "10.25.png"}])
+
+(note-md :Chapter-11 "## Chapter 11")
+
+(note (r->clj (r.utils/methods :class "trellis")))
+(note (r->clj (r.utils/methods :class "shingle")))
+(note (r->clj (r.utils/methods :generic.function "barchart")))
+
+(note-md "### Figure 11.1")
+
+(note-void (def dp-uspe (lat/dotplot (base/t USPersonalExpenditure)
+                                     :groups false
+                                     :index.cond '(function [x y] (median x))
+                                     :layout [1 5]
+                                     :type ["p" "h"]
+                                     :xlab "Expenditure (billion dollars)"))
+           (def dp-uspe-log (lat/dotplot (base/t USPersonalExpenditure)
+                                         :groups false
+                                         :index.cond '(function [x y] (median x))
+                                         :layout [1 5]
+                                         :scales {:x {:log 2}}
+                                         :xlab "Expenditure (billion dollars)")))
+
+(note-void (plot->file (str target-path "11.1.png")
+                       (fn []
+                         (g/plot dp-uspe :split [1 1 2 1] :more true)
+                         (g/plot dp-uspe-log :split [2 1 2 1] :more false))))
+(note-hiccup [:image {:src "11.1.png"}])
+
+(note-md "### Figure 11.2")
+
+(note-void
+ (def state (let [state (base/data-frame state-x77 state-region state-name)]
+              ($<- state 'state.name
+                   (base/with state '(reorder (reorder state.name Frost)
+                                              (as.numeric state.region))))))
+ (def dpfrost (-> '(formula state.name (| Frost (reorder state.region Frost)))
+                  (lat/dotplot :data state
+                               :layout [1 4]
+                               :scales {:y {:relation "free"}}))))
+
+(note (summary dpfrost))
+
+(note-void (plot->file (str target-path "11.2.png")
+                       #(g/plot dpfrost
+                                :panel.height {:x [16 13 9 12] :unit "null"})))
+(note-hiccup [:image {:src "11.2.png"}])
+
+(note-md "### Figure 11.3")
+(note-void (plot->file (str target-path "11.3.png")
+                       (r/bra (stats/update (lat/trellis-last-object)
+                                            :layout [1 1]) 2)))
+(note-hiccup [:image {:src "11.3.png"}])
+
+(note-md "### Figure 11.4")
+
+(note-void
+ (def npanel 12)
+ (def rot {:z (base/seq 0 30 :length npanel)
+           :x (base/seq 0 -80 :length npanel)})
+
+ (def quake-locs (-> '(formula depth (+ long lat))
+                     (lat/cloud quakes :pch "." :cex 1.5
+                                :panel '(function [... screen]
+                                                  (<- pn (panel.number))
+                                                  (panel.cloud ... :screen {:z (bra ~(:z rot) pn)
+                                                                            :x (bra ~(:x rot) pn)}))
+                                :xlab nil :ylab nil :zlab nil
+                                :scales {:draw false}
+                                :zlim [690 30]
+                                :par.settings {:axis.line {:col "transparent"}}))))
+
+(note-void (plot->file (str target-path "11.4.png")
+                       (r/bra quake-locs (base/rep 1 npanel))))
+(note-hiccup [:image {:src "11.4.png"}])
+
+(note-md "### Figure 11.5")
+
+(note-void
+ (def chem-qq (-> '(formula gender (| gcsescore (factor score)))
+                  (lat/qq r.mlmRev/Chem97
+                          :f.value (stats/ppoints 100)
+                          :strip (lat/strip-custom :style 5)))))
+
+(note-void (plot->file (str target-path "11.5.png")
+                       (lat/tmd chem-qq)))
+(note-hiccup [:image {:src "11.5.png"}])
+
+(note-md "### Figure 11.6")
+
+(note-void
+ (def baxy (do (<- 'baxy (-> '(formula (log10 counts)
+                                       (+ (| hour month) weekday))
+                             (lat/xyplot late/biocAccess
+                                         :type ["p" "a"] :as.table true
+                                         :pch "." :cex 2 :col.line "black")))
+               (r '(<- ($ (dimnames baxy) month) (bra month.name [1 2 3 4 5])))
+               (r 'baxy))))
+
+(note-void (plot->file (str target-path "11.6.png")
+                       (late/useOuterStrips baxy)))
+(note-hiccup [:image {:src "11.6.png"}])
+
+(note-md :Chapter-12-skipped "## Chapter 12 (skipped)")
+
+(note-md "Interactive charts - skipped.")
+
+(note-md :Chapter-13 "## Chapter 13")
+
+(note-md "### Figure 13.1")
+
+(note-void
+ (def panel-hypotrochoid (r '(function [r d :cycles 10 :density 30]
+                                       (if (missing r) (<- r (runif 1 0.25 0.75)))
+                                       (if (missing d) (<- d (runif 1 (* r 0.25) r)))
+                                       (<- t (* 2 pi (seq 0 cycles :by (/ 1 density))))
+                                       (<- x (+ (* (- 1 r) (cos t))
+                                                (* d (cos (/ (* (- 1 r) t) r)))))
+                                       (<- y (- (* (- 1 r) (sin t))
+                                                (* d (sin (/ (* (- 1 r) t) r)))))
+                                       (panel.lines x y))))
+
+ (def panel-hypocycloid (r '(function [x y :cycles x :density 30]
+                                      (~panel-hypotrochoid :r (/ x y) :d (/ x y) :cycles cycles :density density))))
+
+ (def prepanel-hypocycloid (r '(function [x y] {:xlim [-1 1] :ylim [-1 1]})))
+ (def grid (let [g (base/data-frame :p (r/colon 11 30) :q 10)]
+             ($<- g 'k (base/with g '(factor (/ p q)))))))
+
+(note-void (plot->file (str target-path "13.1.png")
+                       (-> '(formula p (| q k))
+                           (lat/xyplot grid
+                                       :aspect 1 :scales {:draw false}
+                                       :prepanel prepanel-hypocycloid
+                                       :panel panel-hypocycloid))))
+(note-hiccup [:image {:src "13.1.png"}])
+
+(note-md "### Figure 13.2")
+
+(note-void
+ (def p (-> '(formula [-1 1] [-1 1])
+            (lat/xyplot :aspect 1 :cycles 15
+                        :scales {:draw false} :xlab "" :ylab ""
+                        :panel panel-hypotrochoid))))
+
+(note-void (base/set-seed 20070706))
+
+(note-void (plot->file (str target-path "13.2.png")
+                       (r/bra p (base/rep 1 42))))
+(note-hiccup [:image {:src "13.2.png"}])
+
+(note-md "### Figure 13.3")
+
+(note-void
+ (def prepanel-ls (r '(function [x :n 50 ...]
+                                (<- fit (logspline x))
+                                (<- xx (do.breaks (range x) n))
+                                (<- yy (dlogspline xx fit))
+                                {:ylim [0 (max yy)]})))
+
+ (def panel-ls (r '(function [x :n 50 ...]
+                             (<- fit (logspline x))
+                             (<- xx (do.breaks (range x) n))
+                             (<- yy (dlogspline xx fit))
+                             (panel.lines xx yy ...))))
+
+ (def faithful ($<- faithful 'Eruptions (lat/equal-count ($ faithful 'eruptions ) 4))))
+
+(note-void (plot->file (str target-path "13.3.png")
+                       (-> '(formula nil (| waiting Eruptions))
+                           (lat/densityplot :data faithful
+                                            :prepanel prepanel-ls
+                                            :panel panel-ls))))
+(note-hiccup [:image {:src "13.3.png"}])
+
+(note-md "### Figure 13.4")
+
+(note-void
+ (def panel-bwtufte (r '(function [x y :coef 1.5 ...]
+                                  (<- x (as.numeric x))
+                                  (<- ux (sort (unique x)))
+                                  (<- blist (tapply y (factor x :levels ux) boxplot.stats
+                                                    :coef coef :do.out false))
+                                  (<- blist.stats (t (sapply blist "[[" "stats")))
+                                  (<- blist.out (lapply blist "[[" "out"))
+                                  (panel.points :y (bra blist.stats nil 3)
+                                                :x ux :pch 16 ...)
+                                  (panel.segments :x0 (rep ux 2)
+                                                  :y0 [(bra blist.stats nil 1)
+                                                       (bra blist.stats nil 5)]
+                                                  :x1 (rep ux 2)
+                                                  :y1 [(bra blist.stats nil 2)
+                                                       (bra blist.stats nil 4)]
+                                                  ...)))))
+
+(note-void (plot->file (str target-path "13.4.png")
+                       (-> '(formula (** gcsescore 2.34)
+                                     (| gender (factor score)))
+                           (lat/bwplot r.mlmRev/Chem97
+                                       :panel panel-bwtufte
+                                       :layout [6 1]
+                                       :ylab "Transformed GCSE score"))))
+(note-hiccup [:image {:src "13.4.png"}])
+
+(note-md "### Figure 13.5")
+
+(note-void
+ (def cor-cars93 (stats/cor (r/bra r.MASS/Cars93
+                                   nil
+                                   (r/r! (base/sapply r.MASS/Cars93 base/is-factor)))
+                            :use "pair"))
+
+ (def ord (-> cor-cars93
+              stats/dist
+              stats/hclust
+              stats/as-dendrogram
+              stats/order-dendrogram))
+
+ (def panel-corrgram (r '(function [x y z subscripts at :level 0.9 :label false ...]
+                                   (require "ellipse" :quietly true)
+                                   (<- x (bra (as.numeric x) subscripts))
+                                   (<- y (bra (as.numeric y) subscripts))
+                                   (<- z (bra (as.numeric z) subscripts))
+                                   (<- zcol (level.colors z :at at ...))
+                                   (for [i (seq :along z)]
+                                     (<- ell (ellipse (bra z i) :level level :npoints 50
+                                                      :scale [0.2 0.2] :centre [(bra x i) (bra y i)]))
+                                     (panel.polygon ell :col (bra zcol [i]) :border (bra zcol i) ...))
+                                   (if label
+                                     (panel.text :x x :y y :lab (* 100 (round z 2)) :cex 0.8
+                                                 :col (ifelse (< z 0) "white" "black")))))))
+
+(note-void (plot->file (str target-path "13.5.png")
+                       (lat/levelplot (r/bra cor-cars93 ord ord)
+                                      :at (lat/do-breaks [-1.01 1.01] 20)
+                                      :xlab nil :ylab nil :colorkey {:space "top"}
+                                      :scales {:x {:rot 90}}
+                                      :panel panel-corrgram :label true)))
+(note-hiccup [:image {:src "13.5.png"}])
+
+(note-md "### Figure 13.6")
+
+(note-void
+ (def panel-corrgram-2 (r '(function [x y z subscripts :at (pretty z) :scale 0.8 ...]
+                                     (require "grid" :quietly true)
+                                     (<- x (bra (as.numeric x) subscripts))
+                                     (<- y (bra (as.numeric y) subscripts))
+                                     (<- z (bra (as.numeric z) subscripts))
+                                     (<- zcol (level.colors z :at at ...))
+                                     (for [i (seq :along z)]
+                                       (<- lims (range 0 (bra z i)))
+                                       (<- tval (* 2 pi (seq :from (bra lims 1)
+                                                             :to (bra lims 2)
+                                                             :by 0.01)))
+                                       (grid.circle :x (bra x i) :y (bra y i)
+                                                    :r (* 0.5 scale)
+                                                    :default.units "native")
+                                       (grid.polygon :x (+ (bra x i)
+                                                           (* 0.5 scale [0 (sin tval)]))
+                                                     :y (+ (bra y i)
+                                                           (* 0.5 scale [0 (cos tval)]))
+                                                     :default.units "native"
+                                                     :gp (gpar :fill (bra zcol i))))))))
+
+(note-void (plot->file (str target-path "13.6.png")
+                       (lat/levelplot (r/bra cor-cars93 ord ord)
+                                      :at (lat/do-breaks [-1.01 1.01] 101)
+                                      :xlab nil :ylab nil
+                                      :panel panel-corrgram-2
+                                      :scale {:x {:rot 90}}
+                                      :colorkey {:space "top"}
+                                      :col.regions (dev/colorRampPalette ["red" "white" "blue"]))))
+(note-hiccup [:image {:src "13.6.png"}])
+
+(note-md "### Figure 13.7")
+
+(note-void
+ (def panel-3d-contour (r '(function [x y z rot.mat distance :nlevels 20 zlim.scaled ...]
+                                     (<- add.line (trellis.par.get "add.line"))
+                                     (panel.3dwire x y z rot.mat distance :zlim.scaled zlim.scaled ...)
+                                     (<- clines (contourLines x y (matrix z :nrow (length x) :byrow true) :nlevels nlevels))
+                                     (for [ll clines]
+                                       (<- m (ltransform3dto3d (rbind ll$x ll$y (bra zlim.scaled 2)) rot.mat distance))
+                                       (panel.lines (bra m 1 nil)
+                                                    (bra m 2 nil)
+                                                    :col add.line$col
+                                                    :lty add.line$lty
+                                                    :lwd add.line$lwd))))))
+
+(note-void (plot->file (str target-path "13.7.png")
+                       (lat/wireframe 'volcano
+                                      :zlim [90 250] :nlevels 10
+                                      :aspect [61/87 0.3] :panel.aspect 0.6
+                                      :shade true
+                                      :panel.3d.wireframe panel-3d-contour
+                                      :screen {:z 20 :x -60})))
+(note-hiccup [:image {:src "13.7.png"}])
+
+(note-md "### Figure 13.8")
+
+(note-void
+ (def county-map (r.maps/map "county" :plot false :fill true)))
+
+(note (base/summary county-map))
+
+(note-void
+ (def ancestry (as-> (base/subset late/ancestry '(! (duplicated county))) a
+                 (base/rownames<- a ($ a 'county))))
+ (def freq (base/table ($ ancestry 'top)))
+ (def keep-names (r/bra (base/names freq) (r/r> freq 10)))
+ (def ancestry ($<- ancestry 'mode (base/with ancestry '(factor (ifelse (%in% top ~keep-names) top "Other")))))
+ (def modal-ancestry (r/bra ancestry ($ county-map 'names) "mode"))
+ (def colors (r.RColorBrewer/brewer-pal :n (base/nlevels ($ ancestry 'mode)) :name "Pastel1")))
+
+(note-void (plot->file (str target-path "13.8.png")
+                       (-> '(formula y x)
+                           (lat/xyplot county-map
+                                       :aspect "iso"
+                                       :scales {:draw false}
+                                       :xlab nil :ylab nil
+                                       :par.settings {:axis.line {:col "transparent"}}
+                                       :col (r/bra colors modal-ancestry)
+                                       :border 'NA
+                                       :panel lat/panel-polygon
+                                       :key {:text [:!list (base/levels modal-ancestry) :adj 1]
+                                             :rectangles {:col colors}
+                                             :x 1 :y 0 :corner [1 0]}))))
+(note-hiccup [:image {:src "13.8.png"}])
+
+(note-md "### Figure 13.9")
+
+(note-void
+ (def rad (r '(function [x] (/ (* pi x) 180))))
+
+ (def county-map (-> county-map
+                     ($<- 'xx (base/with county-map '(* (cos (~rad x))
+                                                        (cos (~rad y)))))
+                     ($<- 'yy (base/with county-map '(* (sin (~rad x))
+                                                        (cos (~rad y)))))
+                     ($<- 'zz (base/with county-map '(sin (~rad y))))))
+
+ (def panel-3dpoly (r '(function [x y z :rot.mat (diag 4) distance ...]
+                                 (<- m (ltransform3dto3d (rbind x y z) rot.mat distance))
+                                 (panel.polygon :x (bra m 1 nil)
+                                                :y (bra m 2 nil)
+                                                ...))))
+
+ (def aspect (base/with county-map '[(diff (range yy :na.rm true))
+                                     (/ (diff (range zz :na.rm true))
+                                        (diff (range xx :na.rm true)))])))
+
+
+(note-void (plot->file (str target-path "13.9.png")
+                       (-> '(formula zz (* xx yy))
+                           (lat/cloud county-map
+                                      :par.box {:col "grey"}
+                                      :aspect aspect :panel.aspect 0.6 :lwd 0.2
+                                      :panel.3d.cloud panel-3dpoly
+                                      :col (r/bra colors modal-ancestry)
+                                      :screen {:z 10 :x -30}
+                                      :key {:text [:!list (base/levels modal-ancestry) :adj 1]
+                                            :rectangles {:col colors}
+                                            :space "top" :columns 4}
+                                      :scales {:draw false} :zoom 1.1
+                                      :xlab nil :ylab nil :zlab nil)) :width 600))
+(note-hiccup [:image {:src "13.9.png"}])
+
+(note-md "### Figure 13.10")
+
+(note-void
+ (def rng (base/with late/USCancerRates '(range rate.male rate.female :finite true)))
+ (def nbreaks 50)
+ (def breaks (base/exp (lat/do-breaks (base/log rng) nbreaks))))
+
+(note-void (plot->file (str target-path "13.10.png")
+                       (-> '(formula (rownames USCancerRates)
+                                     (+ rate.male rate.female))
+                           (late/mapplot :data late/USCancerRates
+                                         :breaks breaks
+                                         :scales {:draw false}
+                                         :xlab ""
+                                         :map (r.maps/map "county" :plot false :fill true :projection "tetra")
+                                         :main "Average yearly deaths due to cancer per 100000"))))
+(note-hiccup [:image {:src "13.10.png"}])
+
+(note-md :Chapter-14 "Chapter 14")
+
+(note-md "### Figure 14.1")
+(note-void (plot->file (str target-path "14.1.png")
+                       (lat/xyplot sunspot-year
+                                   :aspect "xy"
+                                   :strip false :strip.left true
+                                   :cut {:number 4 :overlap 0.05})))
+(note-hiccup [:image {:src "14.1.png"}])
+
+(note-md "### Figure 14.2")
+
+(note-void
+ (def ssd (-> late/biocAccess
+              ($ 'counts)
+              (r/bra (r/colon 1 (* 24 30 2)))
+              (stats/ts :frequency 24)
+              (stats/stl "periodic"))))
+
+(note-void (plot->file (str target-path "14.2.png")
+                       (lat/xyplot ssd :xlab "Time (Days)")))
+(note-hiccup [:image {:src "14.2.png"}])
+
+
+(note-md "### Figure 14.3")
+
+(note-void (r/data :GvHD "flowCore"))
+
+(note-void (plot->file (str target-path "14.3.png")
+                       (-> '(formula Visit (| ~(symbol "`FSC-H`") Patient))
+                           (r.flowViz/densityplot :data GvHD))))
+(note-hiccup [:image {:src "14.3.png"}])
+
+(note-md "### Figure 14.4")
+
+(note-void
+ (r/data 'NHANES "hexbin"))
+
+(note-void (plot->file (str target-path "14.4.png")
+                       (-> '(formula Hemoglobin (| TIBC Sex))
+                           (r.hexbin/hexbinplot :data NHANES))))
+(note-hiccup [:image {:src "14.4.png"}])
+
+(note-md "### Figure 14.5")
+
+(note-void
+ (def panel-piechart (r '(function [x y :labels (as.character y)
+                                    :edges 200 :radius 0.8 :clockwise false
+                                    :init.angle (if clockwise 90 0) :density nil
+                                    :angle 45 :col superpose.polygon$col
+                                    :border superpose.polygon$border
+                                    :lty superpose.polygon$lty ...]
+                                   (stopifnot (require "gridBase"))
+                                   (<- superpose.polygon (trellis.par.get "superpose.polygon"))
+                                   (<- opar (par :no.readonly true))
+                                   (on.exit (par opar))
+                                   (if (> (panel.number) 1) (par :new true))
+                                   (par :fig (gridFIG) :omi [0 0 0 0] :mai [0 0 0 0])
+                                   (pie (as.numeric x) :labels labels :edges edges :radius radius
+                                        :clockwise clockwise :init.angle init.angle :angle angle
+                                        :density density :col col :border border :lty lty)))))
+(note-void
+ (def piechart (r '(function [x :data nil :panel ~panel-piechart ...]
+                             (<- ocall (sys.call (sys.parent)))
+                             (brabra<- ocall 1 :value (quote piechart))
+                             (<- ccall (match.call))
+                             (<- ccall$data data)
+                             (<- ccall$panel panel)
+                             (<- ccall$default.scales {:draw false})
+                             (brabra<- ccall 1 :value (quote barchart))
+                             (<- ans (eval.parent ccall))
+                             (<- ans$call ocall)
+                             ans))))
+
+(note-void (plot->file (str target-path "14.5.png")
+                       (do (g/par :new true)
+                           (piechart VADeaths :groups false :xlab ""))))
+(note-hiccup [:image {:src "14.5.png"}])
 
 (comment (dev/x11 :width 9))
 (comment (dev/dev-off))
