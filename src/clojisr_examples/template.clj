@@ -1,8 +1,7 @@
 (ns clojisr-examples.template
   (:require [notespace.v2.note :as note
              :refer [note note-void note-md check]]
-            [notespace.v2.live-reload]
-            [clojisr.v1.r :as r]))
+            [notespace.v2.live-reload]))
 
 (note-md "Here is a basic example of using clojisr for R-interop. Use this example as a template for other examples.")
 
