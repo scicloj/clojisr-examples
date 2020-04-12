@@ -59,6 +59,8 @@ biocLite(c('flowCore', 'flowViz', 'hexbin'))
 
 (note (r->clj r.base/version))
 
+(note-void (r.base/set-seed 2020))
+
 ;; Chapter 1
 
 (note-md :Chapter-1 "## Chapter 1")
@@ -981,7 +983,7 @@ biocLite(c('flowCore', 'flowViz', 'hexbin'))
 (note-void (plot->file (str target-path "6.11b.png")
                        (lat/contourplot volcano :cuts 20 :label false)))
 (note-void (plot->file (str target-path "6.11c.png")
-                       (lat/wireframe volcano :panel.aspect 0.7 :zoom 1)))
+                       (lat/wireframe volcano :panel.aspect 0.7 :zoom 1 :zlab "volcano")))
 (note-hiccup [:div
               [:image {:src "6.11a.png"}]
               [:image {:src "6.11b.png"}]
@@ -1402,6 +1404,7 @@ biocLite(c('flowCore', 'flowViz', 'hexbin'))
                                                          (<- pch (bra ~my-pch (bra ($ ~r.MASS/Cars93 Cylinders) subscripts)))
                                                          (<- fill (bra ~my-fill (bra ($ ~r.MASS/Cars93 AirBags) subscripts)))
                                                          (panel.xyplot x y :pch pch :fill fill :col "black"))
+                                       :xlab "EngineSize" :ylab "Price"
                                        :key [{:space "right" :adj 1}
                                              {:text [:!list (base/levels ($ r.MASS/Cars93 'Cylinders))]
                                               :points {:pch my-pch}}
