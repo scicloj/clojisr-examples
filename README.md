@@ -1,19 +1,20 @@
 # clojisr-examples
 
-We use this repo to create and share examples of using [Clojisr](https://github.com/scicloj/clojisr) (BETA10-SNAPSHOT).
+We use this repo to create and share examples of using [Clojisr](https://github.com/scicloj/clojisr) (BETA10).
 
 ## List of examples
 
-* [Template](https://scicloj.github.io/clojisr-examples/resources/public/clojisr-examples/template/index.html)
-* [Rmarkdown](https://scicloj.github.io/clojisr-examples/resources/public/clojisr-examples/rmarkdown/index.html)
+* [Template](https://scicloj.github.io/clojisr-examples/doc/clojisr-examples/template/)
+* [Rmarkdown](https://scicloj.github.io/clojisr-examples/doc/clojisr-examples/rmarkdown/)
 * [Shiny](./src/clojisr_examples/shiny.clj)
-* [Lattice](https://scicloj.github.io/clojisr-examples/resources/public/clojisr-examples/lattice/index.html) - rework from [this site](http://lmdvr.r-forge.r-project.org/figures/figures.html)
-* [R by Example](https://scicloj.github.io/clojisr-examples/resources/public/clojisr-examples/r-by-example/index.html) - examples from a book by J. Albert and M. Rizzo
+* [Lattice](https://scicloj.github.io/clojisr-examples/doc/clojisr-examples/lattice/) - rework from [this site](http://lmdvr.r-forge.r-project.org/figures/figures.html)
+* [R by Example](https://scicloj.github.io/clojisr-examples/doc/clojisr-examples/r-by-example/) - examples from a book by J. Albert and M. Rizzo
 
 ## Other collection of examples
 
 * [clojure-map-examples](https://github.com/joannecheng/clojure-map-examples) by joannecheng - making geographic maps using R (rayshader, etc.) through interop
 * some relevant notesbook at [generateme's nextjournal collection](https://nextjournal.com/generateme/)
+* [a tutorial](https://gist.github.com/ashimapanjwani/c174da75150c74e558359a087938b9ce) about everything necessary to use clojisr with ggplot by ashimapanjwani
 
 ## How to add your examples
 This will soon be documented.
