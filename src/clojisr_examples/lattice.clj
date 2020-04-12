@@ -35,6 +35,8 @@ biocLite(c('flowCore', 'flowViz', 'hexbin'))
                     '[clojisr.v1.require :refer [require-r]]
                     '[clojisr.v1.applications.plotting :refer [plot->file]]))
 
+(note-void (r/discard-all-sessions))
+
 (note-void (require-r '[lattice :as lat]
                       '[latticeExtra :as late]
                       '[stats :as stats]
