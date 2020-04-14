@@ -8,13 +8,6 @@
 
 (def target-path (notespace.v2.note/ns->out-dir *ns*))
 
-(defmacro plot
-  [fname & fs]
-  (let [p (str target-path fname)]
-    `(note-as-hiccup
-      (plot->file ~p (fn [] ~@fs))
-      [:image {:src ~fname}])))
-
 (note-md "# [R by Example](https://www.springer.com/gp/book/9781461413646) by Jim Albert and Maria Rizzo - read-along")
 
 (note-md "Code from the book ported to `clojisr` library. Read the book and run a code in Clojure.")
@@ -1232,10 +1225,108 @@
 (note-md "### Exercise 3.7 - Dice rolls, continued")
 (note-md "### Exercise 3.8 - Are the digits of `pi` random?")
 
+(note-md :Chapter-4---Presentation-Graphics "# Chapter 4 - Presentation Graphics")
+(note-md "## 4.1 - Introduction")
+(note-md "#### Example 4.1 - Home run hitting in baseball history")
+
+(note-void (def hitting-data (u/read-table "data/batting.history.txt" :header true :sep "\t")))
+(note-void (base/attach hitting-data))
+
+(note-void (plot->file (str target-path "ch4ex41.png") (fn [] (g/plot 'Year 'HR))))
+(note-hiccup  [:image {:src "ch4ex41.png"}])
+
+(note-md "## 4.2 - Labeling the Axes and Adding a Title")
+
+(note-void (plot->file (str target-path "ch4ex42.png") (fn [] (g/plot 'Year 'HR
+                                                                     :xlab "Season"
+                                                                     :ylab "Avg HR Hit Per Team Per Game"
+                                                                     :main "Home Run Hitting in the MLB Across Seasons"))))
+(note-hiccup  [:image {:src "ch4ex42.png"}])
+
+(note-md "## 4.3 - Changing the Plot Type and Plotting Symbol")
+
+(note-void (plot->file (str target-path "ch4ex43.png") (fn [] (g/plot 'Year 'HR :type "b"
+                                                                     :xlab "Season"
+                                                                     :ylab "Avg HR Hit Per Team Per Game"
+                                                                     :main "Home Run Hitting in the MLB Across Seasons"))))
+(note-hiccup  [:image {:src "ch4ex43.png"}])
+
+(note-def (def row (base/rep (colon 1 3) :each 7)))
+(note-def (def col (base/rep (colon 1 7) :times 3)))
+
+(note-void (plot->file (str target-path "ch4ex43b.png") (fn []
+                                                          (g/plot 2 3 :xlim [0.5 3.5] :ylim [0.5 7.5]
+                                                                  :type "n" :xaxt "n" :yaxt "n" :xlab "" :ylab "")
+                                                          (g/points row col :pch (colon 0 20) :cex 3)
+                                                          (g/text row col (colon 0 20) :pos 4 :offset 2 :cex 1.5)
+                                                          (g/title "Plotting Symbols with the pch Argument"))))
+(note-hiccup  [:image {:src "ch4ex43b.png"}])
+
+(note-void (plot->file (str target-path "ch4ex43c.png") (fn [] (g/plot 'Year 'HR :cex 1.5 :pch 19
+                                                                      :xlab "Season"
+                                                                      :ylab "Avg HR Hit Per Team Per Game"
+                                                                      :main "Home Run Hitting in the MLB Across Seasons"))))
+(note-hiccup  [:image {:src "ch4ex43c.png"}])
+
+(note-md "## 4.4 - Overlaying Lines and Line Types")
+
+(note-void (plot->file (str target-path "ch4ex44.png") (fn []
+                                                         (g/plot 'Year 'HR
+                                                                 :xlab "Season"
+                                                                 :ylab "Avg HR Hit Per Team Per Game"
+                                                                 :main "Home Run Hitting in the MLB Across Seasons")
+                                                         (g/lines (stats/lowess 'Year 'HR)))))
+(note-hiccup  [:image {:src "ch4ex44.png"}])
+
+(note-void (plot->file (str target-path "ch4ex44b.png") (fn []
+                                                          (g/plot 0 0 :type "n" :xlim [-2 2] :ylim [-2 2]
+                                                                  :xaxt "n" :yaxt "n" :xlab "" :ylab "")
+                                                          (doseq [[j a] (map-indexed vector (r->clj (base/seq 2 -3 -1)))]
+                                                            (g/abline :a a :b 1 :lty (inc j) :lwd 2))
+                                                          (g/legend "topleft" :legend ["solid" "dashed" "dotted"
+                                                                                       "dotdash" "longdash" "twodash"]
+                                                                    :lty (colon 1 6) :lwd 2)
+                                                          (g/title "Line Styles with the lty Argument"))))
+(note-hiccup  [:image {:src "ch4ex44b.png"}])
+
+(note-void (plot->file (str target-path "ch4ex44c.png") (fn []
+                                                          (g/plot 'Year 'HR
+                                                                  :xlab "Season"
+                                                                  :ylab "Avg HR Hit Per Team Per Game"
+                                                                  :main "Home Run Hitting in the MLB Across Seasons")
+                                                          (g/lines (stats/lowess 'Year 'HR) :lwd 2)
+                                                          (g/lines (stats/lowess 'Year 'HR :f 1/3) :lty "dashed" :lwd 2)
+                                                          (g/lines (stats/lowess 'Year 'HR :f 1/12) :lty "dotdash" :lwd 2)
+                                                          (g/legend "topleft" :legend ["f = 2/3" "f = 1/3" "f = 1/12"]
+                                                                    :lty [1 2 4] :lwd 2 :inset 0.05))))
+(note-hiccup  [:image {:src "ch4ex44c.png"}])
+
+(note-md "## 4.5 - Using Different Colors for Points and Lines")
+
+(note (take 20 (r->clj (dev/colors))))
+
+(note-void (plot->file (str target-path "ch4ex45.png") (fn [] (g/plot (colon 1 10)
+                                                                     [5 4 3 2 1 2 3 4 3 2]
+                                                                     :pch 19 :cex 5
+                                                                     :col ["red""blue""green""beige""goldenrod"
+                                                                           "turquoise""salmon""purple""pink""seashell"]))))
+(note-hiccup  [:image {:src "ch4ex45.png"}])
+
+(note (dev/palette))
+
+(note-void (plot->file (str target-path "ch4ex45b.png") (fn [] (g/plot 0 0 :type "n"
+                                                                      :xlim [-2 2] :ylim [-2 2]
+                                                                      :xaxt "n" :yaxt "n" :xlab "" :ylab "")
+                                                          (let [y [-1 1 0 5000]]
+                                                            (doseq [j (range 4)]
+                                                              (g/abline :a 0 :b (y j) :lty (inc j) :lwd 4 :col (inc j)))))))
+(note-hiccup  [:image {:src "ch4ex45b.png"}])
+
 (note-md "# Cleaning")
 
 (note-void (base/detach brain))
 (note-void (base/detach USArrests))
+(note-void (base/detach hitting-data))
 
 (comment (notespace.v2.note/compute-this-notespace!))
 
