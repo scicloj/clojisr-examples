@@ -17,7 +17,9 @@
 
 (note-md "# Lattice")
 
-(note-md "Examples from the Lattice book [page](http://lmdvr.r-forge.r-project.org/figures/figures.html)")
+(note-md "[Examples from the Lattice book](http://lmdvr.r-forge.r-project.org/figures/figures.html) translated with a permission by author.")
+
+(note-md "[Lattice](https://www.springer.com/gp/book/9780387759685) by Deepayan Sarkar.")
 
 (note-md "Please be sure to install following packages.")
 
