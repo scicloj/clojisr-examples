@@ -48,19 +48,20 @@
 
 (note-md "### [Most basic violin chart](https://www.r-graph-gallery.com/95-violin-plot-with-ggplot2.html)")
 
+(note-void (def data-random (base/data-frame :name [(repeat 500 "A")
+                                                    (repeat 500 "B")
+                                                    (repeat 500 "B")
+                                                    (repeat 20 "C")
+                                                    (repeat 100 "D")]
+                                             :value [(stats/rnorm 500 10 5)
+                                                     (stats/rnorm 500 13 1)
+                                                     (stats/rnorm 500 18 1)
+                                                     (stats/rnorm 20 25 4)
+                                                     (stats/rnorm 100 12 1)])))
+
 (note-void (plot->file (str target-path "a.png")
-                       (let [data (base/data-frame :name [(repeat 500 "A")
-                                                          (repeat 500 "B")
-                                                          (repeat 500 "B")
-                                                          (repeat 20 "C")
-                                                          (repeat 100 "D")]
-                                                   :value [(stats/rnorm 500 10 5)
-                                                           (stats/rnorm 500 13 1)
-                                                           (stats/rnorm 500 18 1)
-                                                           (stats/rnorm 20 25 4)
-                                                           (stats/rnorm 100 12 1)])]
-                         (r+ (gg/ggplot data (gg/aes :x 'name :y 'value :fill 'name))
-                             (gg/geom_violin)))))
+                       (r+ (gg/ggplot data-random (gg/aes :x 'name :y 'value :fill 'name))
+                           (gg/geom_violin))))
 (note-hiccup [:image {:src "a.png"}])
 
 (note-void (def data-wide (bra iris nil (colon 1 4))))
@@ -89,6 +90,85 @@
                            (gg/theme :legend.position "none"))))
 (note-hiccup [:image {:src "c.png"}])
 
+(note-md "### [Horizontal version](https://www.r-graph-gallery.com/violin_horizontal_ggplot2.html)")
+
+(note-void (def data (-> "https://raw.githubusercontent.com/zonination/perceptions/master/probly.csv"
+                         (u/read-table :header true :sep ",")
+                         (tidyr/gather :key "text" :value "value")
+                         (dplyr/mutate :text '(gsub "\\\\." " " text))
+                         (dplyr/mutate :value '(round (as.numeric value) 0))
+                         (dplyr/filter '(%in% text ["Almost Certainly" "Very Good Chance" "We Believe" "Likely"
+                                                    "About Even" "Little Chance" "Chances Are Slight" "Almost No Chance"]))
+                         (dplyr/mutate :text '(fct_reorder text value)))))
+
+(note-void (plot->file (str target-path "d.png")
+                       (r+ (gg/ggplot data (gg/aes :x 'text :y 'value :color 'text :fill 'text))
+                           (gg/geom_violin :width 2.1 :size 0.2)
+                           (viridis/scale_fill_viridis :discrete true)
+                           (viridis/scale_color_viridis :discrete true)
+                           (th/theme_ipsum_rc)
+                           (gg/theme :legend.position "none")
+                           (gg/coord_flip)
+                           (gg/xlab "")
+                           (gg/ylab "Assigned Probability (%)"))))
+(note-hiccup [:image {:src "d.png"}])
+
+(note-md "### [Violin + boxplot + sample size](https://www.r-graph-gallery.com/violin_and_boxplot_ggplot2.html)")
+
+(note-void (def sample-size (-> data-random
+                                (dplyr/group_by 'name)
+                                (dplyr/summarize :num '(n)))))
+
+(note-void (plot->file (str target-path "e.png")
+                       (let [data (-> data-random
+                                      (dplyr/left_join sample-size)
+                                      (dplyr/mutate :myaxis '(paste0 name "\\\n" "n=" num)))]
+                         (r+ (gg/ggplot data (gg/aes :x 'myaxis :y 'value :fill 'name))
+                             (gg/geom_violin :width 1.4)
+                             (gg/geom_boxplot :width 0.1 :color "grey" :alpha 0.2)
+                             (viridis/scale_fill_viridis :discrete true)
+                             (th/theme_ipsum_rc)
+                             (gg/theme :legend.position "none" :plot.title (gg/element_text :size 11))
+                             (gg/ggtitle "A Violing wrapping a boxplot")
+                             (gg/xlab "")))))
+(note-hiccup [:image {:src "e.png"}])
+
+(note-md "### [Grouped violin chart](https://www.r-graph-gallery.com/violin_grouped_ggplot2.html)")
+
+(note-void (def data (-> "https://raw.githubusercontent.com/holtzy/data_to_viz/master/Example_dataset/10_OneNumSevCatSubgroupsSevObs.csv"
+                         (u/read-table :header true :sep ",")
+                         (dplyr/mutate :tip '(round (* (/ tip total_bill) 100) 1))
+                         (dplyr/mutate :day '(fct_reorder day tip))
+                         (dplyr/mutate :day '(factor day :levels ["Thur" "Fri" "Sat" "Sun"])))))
+
+(note-void (plot->file (str target-path "f.png")
+                       (r+ (gg/ggplot data (gg/aes :fill 'sex :y 'tip :x 'day))
+                           (gg/geom_violin :position "dodge" :alpha 0.5 :outlier.colour "transparent")
+                           (viridis/scale_fill_viridis :discrete true :name "")
+                           (th/theme_ipsum_rc)
+                           (gg/xlab "")
+                           (gg/ylab "Tip (%)")
+                           (gg/ylim 0 40))))
+(note-hiccup [:image {:src "f.png"}])
+
+(note-md "## Base R and Vioplot")
+
+(note-md "### [Vioplot package](https://www.r-graph-gallery.com/94-violin-plot.html)")
+
+(note-void (require-r '[vioplot]))
+
+(note-void (plot->file (str target-path "g.png")
+                       (fn [] (let [treatment [(repeat 40 "A") (repeat 40 "B") (repeat 40 "C")]
+                                   value [(base/sample [2 3 4 5] 40 :replace true)
+                                          (base/sample [(colon 1 5) (colon 12 17)] 40 :replace true)
+                                          (base/sample (colon 1 7) 40 :replace true)]
+                                   data (base/data-frame :treatment treatment :value value)]
+                               (base/with data '(vioplot (bra value (== treatment "A"))
+                                                         (bra value (== treatment "B"))
+                                                         (bra value (== treatment "C"))
+                                                         :col (dev/rgb 0.1 0.4 0.7 0.7)
+                                                         :names ["A" "B" "C"]))))))
+(note-hiccup [:image {:src "g.png"}])
 
 (comment (notespace.v2.note/compute-this-notespace!))
 (comment (r/discard-all-sessions))

@@ -31,7 +31,7 @@ With a permission given by [Yan Holtz](https://www.yan-holtz.com/) we recreated 
 
 | Chart type - Clojure code | R code |
 | - | - |
-| [Violin (wip)](https://scicloj.github.io/clojisr-examples/doc/clojisr-examples/graph-gallery/violin/) | [source](https://www.r-graph-gallery.com/violin.html) |
+| [Violin](https://scicloj.github.io/clojisr-examples/doc/clojisr-examples/graph-gallery/violin/) | [source](https://www.r-graph-gallery.com/violin.html) |
 | [Density](https://scicloj.github.io/clojisr-examples/doc/clojisr-examples/graph-gallery/density/) | [source](https://www.r-graph-gallery.com/density-plot.html) |
 | [Histogram](https://scicloj.github.io/clojisr-examples/doc/clojisr-examples/graph-gallery/histogram/) | [source](https://www.r-graph-gallery.com/histogram.html) |
 
