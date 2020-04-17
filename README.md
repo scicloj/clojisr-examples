@@ -7,8 +7,25 @@ We use this repo to create and share examples of using [Clojisr](https://github.
 * [Template](https://scicloj.github.io/clojisr-examples/doc/clojisr-examples/template/)
 * [Rmarkdown](https://scicloj.github.io/clojisr-examples/doc/clojisr-examples/rmarkdown/)
 * [Shiny](./src/clojisr_examples/shiny.clj)
-* [Lattice](https://scicloj.github.io/clojisr-examples/doc/clojisr-examples/lattice/) - rework from [this site](http://lmdvr.r-forge.r-project.org/figures/figures.html)
-* [R by Example](https://scicloj.github.io/clojisr-examples/doc/clojisr-examples/r-by-example/) - examples from a book by J. Albert and M. Rizzo
+* [Lattice](https://scicloj.github.io/clojisr-examples/doc/clojisr-examples/lattice/) - [examples](http://lmdvr.r-forge.r-project.org/figures/figures.html) from [Lattice](https://www.springer.com/gp/book/9780387759685) book. With a permission of Deepayan Sarkar, the author.
+
+### R Graph Gallery
+
+With a permission given by [Yan Holtz](https://www.yan-holtz.com/) we recreated examples of charts found on [R Graph Gallery](https://www.r-graph-gallery.com/) and [from Data to Viz](https://www.data-to-viz.com/) sites.
+
+#### from Data to Viz
+
+| Topic - Clojure code | R code |
+| - | - |
+| [One numeric variable](https://scicloj.github.io/clojisr-examples/doc/clojisr-examples/graph-gallery/one-num/) | [source](https://www.data-to-viz.com/story/OneNum.html) |
+
+#### R Graph Gallery
+
+| Chart type - Clojure code | R code |
+| - | - |
+| [Violin](https://scicloj.github.io/clojisr-examples/doc/clojisr-examples/graph-gallery/violin/) | [source](https://www.r-graph-gallery.com/violin.html) |
+| [Density](https://scicloj.github.io/clojisr-examples/doc/clojisr-examples/graph-gallery/density/) | [source](https://www.r-graph-gallery.com/density-plot.html) |
+| [Histogram](https://scicloj.github.io/clojisr-examples/doc/clojisr-examples/graph-gallery/histogram/) | [source](https://www.r-graph-gallery.com/histogram.html) |
 
 ## Other collection of examples
 
