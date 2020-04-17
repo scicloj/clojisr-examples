@@ -14,7 +14,6 @@ We use this repo to create and share examples of using [Clojisr](https://github.
 
 * [clojure-map-examples](https://github.com/joannecheng/clojure-map-examples) by joannecheng - making geographic maps using R (rayshader, etc.) through interop
 * some relevant notesbook at [generateme's nextjournal collection](https://nextjournal.com/generateme/)
-* [a tutorial](https://gist.github.com/ashimapanjwani/c174da75150c74e558359a087938b9ce) about everything necessary to use clojisr with ggplot by ashimapanjwani
 
 ## How to add your examples
 This will soon be documented.
