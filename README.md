@@ -7,7 +7,15 @@ We use this repo to create and share examples of using [Clojisr](https://github.
 * [Template](https://scicloj.github.io/clojisr-examples/doc/clojisr-examples/template/)
 * [Rmarkdown](https://scicloj.github.io/clojisr-examples/doc/clojisr-examples/rmarkdown/)
 * [Shiny](./src/clojisr_examples/shiny.clj)
-* [Lattice](https://scicloj.github.io/clojisr-examples/doc/clojisr-examples/lattice/) - [examples](http://lmdvr.r-forge.r-project.org/figures/figures.html) from [Lattice](https://www.springer.com/gp/book/9780387759685) book. With a permission of Deepayan Sarkar, the author.
+
+### Packages
+
+Here we present examples of usage of particular R packages.
+
+| Package - Clojure example | Package page | Comments |
+| - | - | - |
+| [lattice](https://scicloj.github.io/clojisr-examples/doc/clojisr-examples/lattice/) | [www](http://lattice.r-forge.r-project.org/) | [examples](http://lmdvr.r-forge.r-project.org/figures/figures.html) from [Lattice](https://www.springer.com/gp/book/9780387759685) book. With a permission of Deepayan Sarkar, the author. |
+| [mlr3 (wip)](https://scicloj.github.io/clojisr-examples/doc/clojisr-examples/mlr3/) | [www](https://mlr3.mlr-org.com/), [book](https://mlr3book.mlr-org.com/) | |
 
 ### R Graph Gallery
 
@@ -23,7 +31,7 @@ With a permission given by [Yan Holtz](https://www.yan-holtz.com/) we recreated 
 
 | Chart type - Clojure code | R code |
 | - | - |
-| [Violin](https://scicloj.github.io/clojisr-examples/doc/clojisr-examples/graph-gallery/violin/) | [source](https://www.r-graph-gallery.com/violin.html) |
+| [Violin (wip)](https://scicloj.github.io/clojisr-examples/doc/clojisr-examples/graph-gallery/violin/) | [source](https://www.r-graph-gallery.com/violin.html) |
 | [Density](https://scicloj.github.io/clojisr-examples/doc/clojisr-examples/graph-gallery/density/) | [source](https://www.r-graph-gallery.com/density-plot.html) |
 | [Histogram](https://scicloj.github.io/clojisr-examples/doc/clojisr-examples/graph-gallery/histogram/) | [source](https://www.r-graph-gallery.com/histogram.html) |
 
