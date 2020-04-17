@@ -153,6 +153,10 @@
                        (gge/ggMarginal marginal-plot :type "density")))
 (note-hiccup [:image {:src "i.png"}])
 
+(note-void (plot->file (str target-path "j.png")
+                       (gge/ggMarginal marginal-plot :margins "x" :color "purple" :size 4)))
+(note-hiccup [:image {:src "j.png"}])
+
 (comment (notespace.v2.note/compute-this-notespace!))
 (comment (r/discard-all-sessions))
 

@@ -25,7 +25,6 @@
                       '[dplyr :as dplyr]
                       '[tidyr :as tidyr]
                       '[ggplot2 :as gg]
-                      ;; '[ggExtra :as gge]
                       '[viridis :as viridis]
                       '[forcats]
                       '[extrafont]
