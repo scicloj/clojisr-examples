@@ -35,6 +35,7 @@ With a permission given by [Yan Holtz](https://www.yan-holtz.com/) we recreated 
 | [Density](https://scicloj.github.io/clojisr-examples/doc/clojisr-examples/graph-gallery/density/) | [source](https://www.r-graph-gallery.com/density-plot.html) |
 | [Histogram](https://scicloj.github.io/clojisr-examples/doc/clojisr-examples/graph-gallery/histogram/) | [source](https://www.r-graph-gallery.com/histogram.html) |
 | [Boxplot](https://scicloj.github.io/clojisr-examples/doc/clojisr-examples/graph-gallery/boxplot/) | [source](https://www.r-graph-gallery.com/boxplot.html) |
+| [Ridgeline](https://scicloj.github.io/clojisr-examples/doc/clojisr-examples/graph-gallery/ridgeline/) | [source](https://www.r-graph-gallery.com/ridgeline-plot.html) |
 
 ## Other collection of examples
 
