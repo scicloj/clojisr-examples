@@ -5,6 +5,9 @@
 
 (def target-path (notespace.v2.note/ns->out-dir *ns*))
 
+(note/defkind note-def :def {:render-src?    true
+                             :value-renderer (comp notespace.v2.view/value->hiccup var-get)})
+
 (note-md "# [R Graph Gallery](https://www.r-graph-gallery.com/) - [Boxplot](https://www.r-graph-gallery.com/boxplot.html)")
 (note-md "Code from [project](https://www.r-graph-gallery.com/) by Yan Holtz")
 (note-md "You can find here only translated code, please refer [original text](https://www.r-graph-gallery.com/boxplot.html)")
@@ -325,7 +328,7 @@
 
 (note-md "### [Boxplot with specific order](https://www.r-graph-gallery.com/22-order-boxplot-labels-by-names.html)")
 
-(note-void (plot->file (str target-path "x.png")
+(note-void (plot->file (str target-path "w.png")
                        #(let [names [(repeat 20 "A")
                                      (repeat 20 "B")
                                      (repeat 20 "C")
@@ -341,11 +344,11 @@
                                      :col (dev/rgb 0.3 0.5 0.4 0.6)
                                      :ylab "value"
                                      :xlab "names in desired order"))))
-(note-hiccup [:image {:src "x.png"}])
+(note-hiccup [:image {:src "w.png"}])
 
 (note-md "### [Grouped and ordered boxplot](https://www.r-graph-gallery.com/9-ordered-boxplot.html#grouped)")
 
-(note-void (plot->file (str target-path "y.png")
+(note-void (plot->file (str target-path "x.png")
                        ;; Create dummy data
                        #(let [variety (base/rep ["soldur", "silur", "lloyd", "pescadou", "X4582", "Dudur", "Classic"] :each 40)
                               treatment (base/rep [(repeat 20 "high") (repeat 20 "low")] 7)
@@ -380,7 +383,163 @@
                             (g/legend "bottomright" :legend ["High treatment" "Low treatment"]
                                       :col ["slateblue1" "tomato"]
                                       :pch 15 :bty "n" :pt.cex 3 :cex 1.2 :horiz false :inset [0.1 0.1])))))
+(note-hiccup [:image {:src "x.png"}])
+
+(note-md "### [Boxplot with variable width](https://www.r-graph-gallery.com/24-boxplot-with-variable-width.html)")
+
+(note-void (plot->file (str target-path "y.png")
+                       #(let [names [(repeat 20 "A") (repeat 8 "B") (repeat 30 "C") (repeat 80 "D")]
+                              value [(base/sample (colon 2 5) 20 :replace true)
+                                     (base/sample (colon 4 10) 8 :replace true)
+                                     (base/sample (colon 1 7) 30 :replace true)
+                                     (base/sample (colon 3 8) 80 :replace true)]
+                              data (base/data-frame :names names :value value)
+                              proportion (r/rdiv (base/table ($ data 'names)) (base/nrow data))]
+                          (g/boxplot `(formula ($ ~data value)
+                                               ($ ~data names))
+                                     :width proportion
+                                     :col ["orange" "seagreen"]
+                                     :xlab "names" :ylab "value"))))
 (note-hiccup [:image {:src "y.png"}])
+
+(note-md "### [Boxplot with labels on top](https://www.r-graph-gallery.com/26-add-text-over-a-boxplot.html)")
+
+(note-void (plot->file (str target-path "z.png")
+                       #(let [names [(repeat 20 "A") (repeat 8 "B") (repeat 30 "C") (repeat 80 "D")]
+                              value [(base/sample (colon 2 5) 20 :replace true)
+                                     (base/sample (colon 4 10) 8 :replace true)
+                                     (base/sample (colon 1 7) 30 :replace true)
+                                     (base/sample (colon 3 8) 80 :replace true)]
+                              data (base/data-frame :names names :value value)
+                              boundaries (g/boxplot `(formula ($ ~data value)
+                                                              ($ ~data names)) :col "#69b3a2" :ylim [1 11]
+                                                    :xlab "names" :ylab "value")
+                              nb-group (base/nlevels ($ data 'names))]
+                          (g/text :x [(colon 1 nb-group)]
+                                  :y (r+ (bra ($ boundaries 'stats) (base/nrow ($ boundaries 'stats)) nil) 0.5)
+                                  (base/paste "n = " (base/table ($ data 'names)) :sep "")))))
+(note-hiccup [:image {:src "z.png"}])
+
+(note-md "### [Tukey test](https://www.r-graph-gallery.com/84-tukey-test.html)")
+
+(note-void (require-r '[multcompView :as mcv]))
+(note-void (base/set-seed 1))
+
+(note-void (def data (let [treatment (base/rep ["A" "B" "C" "D" "E"] :each 20)
+                           value [(base/sample (colon 2 5) 20 :replace true)
+                                  (base/sample (colon 6 10) 20 :replace true)
+                                  (base/sample (colon 1 7) 20 :replace true)
+                                  (base/sample (colon 3 10) 20 :replace true)
+                                  (base/sample (colon 10 20) 20 :replace true)]]
+                       (<- 'data (base/data-frame :treatment treatment :value value)))))
+
+(note-def (def model (stats/lm '(formula ($ data value)
+                                         ($ data treatment)))))
+
+(note-def (def ANOVA (stats/aov model)))
+
+(note-def (def TUKEY (stats/TukeyHSD :x ANOVA "data$treatment" :conf.level 0.95)))
+
+(note-void (plot->file (str target-path "A.png")
+                       #(g/plot TUKEY :las 1 :col "brown")))
+(note-hiccup [:image {:src "A.png"}])
+
+(note-void (def generate-label-df (r '(function [TUKEY variable]
+                                                (<- Tukey.levels (bra (brabra TUKEY variable) nil 4))
+                                                (<- Tukey.labels (data.frame (bra (multcompLetters Tukey.levels) "Letters")))
+                                                (<- Tukey.labels (~(symbol "`$<-`") Tukey.labels treatment (rownames Tukey.labels)))
+                                                (bra Tukey.labels (order Tukey.labels$treatment) nil)))))
+
+(note-def (def LABELS (generate-label-df TUKEY "data$treatment")))
+(note-void (def my-colors [(dev/rgb 143 199 74 :maxColorValue 255)
+                           (dev/rgb 242 104 34 :maxColorValue 255)
+                           (dev/rgb 111 145 202 :maxColorValue 255)]))
+
+(note-void (plot->file (str target-path "B.png")
+                       #(let [a (g/boxplot '(formula data$value data$treatment)
+                                           :ylim [(base/min 'data$value)
+                                                  (r/r* 1.1 (base/max 'data$value))]
+                                           :col (bra my-colors (base/as-numeric (bra LABELS nil 1)))
+                                           :ylab "value" :main "")
+                              over (r/r* 0.1 (base/max (bra ($ a 'stats) (base/nrow ($ a 'stats)) nil)))]
+                          (g/text [(colon 1 (base/nlevels 'data$treatment))]
+                                  (r+ (bra ($ a 'stats) (base/nrow ($ a 'stats)) nil) over)
+                                  (bra LABELS nil 1)
+                                  :col (bra my-colors (base/as-numeric (bra LABELS nil 1)))))))
+(note-hiccup [:image {:src "B.png"}])
+
+(note-md "### [Box type around plot](https://www.r-graph-gallery.com/73-box-style-with-the-bty-function.html)")
+
+(note-void (plot->file (str target-path "C.png")
+                       #(let [a (r+ (base/seq 1 29)
+                                    (r/r* 4 (stats/runif 29 0.4)))
+                              b (r+ (r/r** (base/seq 1 29) 2)
+                                    (stats/runif 29 0.98))]
+                          (g/par :mfrow [2 2])
+                          (g/par :bty "l")
+                          (g/boxplot a :col "#69b3a2" :xlab "bottom & left box")
+                          (g/par :bty "o")
+                          (g/boxplot b :col "#69b3a2" :xlab "complete box" :horizontal true)
+                          (g/par :bty "c")
+                          (g/boxplot a :col "#69b3a2" :xlab "up & bottom & left box" :width 0.5)
+                          (g/par :bty "n")
+                          (g/boxplot a :col "#69b3a2" :xlab "no box"))))
+(note-hiccup [:image {:src "C.png"}])
+
+(note-void "### [Split plot window with layout()](https://www.r-graph-gallery.com/75-split-screen-with-layout.html)")
+
+(note-void "#### Two rows")
+
+(note-void (plot->file (str target-path "D.png")
+                       #(let [a (r+ (base/seq 1 129)
+                                    (r/r* 4 (stats/runif 129 0.4)))
+                              b (r+ (r/r** (base/seq 1 129) 2)
+                                    (stats/runif 129 0.98))
+                              nf (g/layout (base/matrix [1 2] :ncol 1))]
+                          (g/hist a :breaks 30 :border false :col (dev/rgb 0.1 0.8 0.3 0.5) :xlab "distribution of a" :main "")
+                          (g/boxplot a :col (dev/rgb 0.8 0.8 0.3 0.5) :xlab "a" :las 2))))
+(note-hiccup [:image {:src "D.png"}])
+
+(note-void "#### Two columns")
+
+(note-void (plot->file (str target-path "E.png")
+                       #(let [a (r+ (base/seq 1 129)
+                                    (r/r* 4 (stats/runif 129 0.4)))
+                              b (r+ (r/r** (base/seq 1 129) 2)
+                                    (stats/runif 129 0.98))
+                              nf (g/layout (base/matrix [1 2] :ncol 2))]
+                          (g/hist a :breaks 30 :border false :col (dev/rgb 0.1 0.8 0.3 0.5) :xlab "distribution of a" :main "")
+                          (g/boxplot a :col (dev/rgb 0.8 0.8 0.3 0.5) :xlab "a" :las 2))))
+(note-hiccup [:image {:src "E.png"}])
+
+(note-void "#### Subdivide second row")
+
+(note-void (plot->file (str target-path "F.png")
+                       #(let [a (r+ (base/seq 1 129)
+                                    (r/r* 4 (stats/runif 129 0.4)))
+                              b (r+ (r/r** (base/seq 1 129) 2)
+                                    (stats/runif 129 0.98))
+                              nf (g/layout (base/matrix [1 1 2 3] :nrow 2 :byrow true))]
+                          (g/hist a :breaks 30 :border false :col (dev/rgb 0.1 0.8 0.3 0.5) :xlab "distribution of a" :main "")
+                          (g/boxplot a :col (dev/rgb 0.8 0.8 0.3 0.5) :xlab "a" :las 2)
+                          (g/boxplot b :col (dev/rgb 0.4 0.2 0.3 0.5) :xlab "b" :las 2))))
+(note-hiccup [:image {:src "F.png"}])
+
+(note-void "#### Subdivide second row")
+
+(note-void (plot->file (str target-path "G.png")
+                       #(let [a (r+ (base/seq 1 129)
+                                    (r/r* 4 (stats/runif 129 0.4)))
+                              b (r+ (r/r** (base/seq 1 129) 2)
+                                    (stats/runif 129 0.98))
+                              nf (g/layout (base/matrix [1 1 2 3] :nrow 2 :byrow true)
+                                           :widths [3 1]
+                                           :heights [2 2])]
+                          (g/hist a :breaks 30 :border false :col (dev/rgb 0.1 0.8 0.3 0.5) :xlab "distribution of a" :main "")
+                          (g/boxplot a :col (dev/rgb 0.8 0.8 0.3 0.5) :xlab "a" :las 2)
+                          (g/boxplot b :col (dev/rgb 0.4 0.2 0.3 0.5) :xlab "b" :las 2))))
+(note-hiccup [:image {:src "G.png"}])
+
 
 (comment (notespace.v2.note/compute-this-notespace!))
 (comment (r/discard-all-sessions))
