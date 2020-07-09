@@ -3,8 +3,7 @@
 
   http://lmdvr.r-forge.r-project.org/figures/figures.html"
   (:require [notespace.v2.note :as note
-             :refer [note note-void note-md note-as-md note-hiccup note-as-hiccup]]
-            [clojisr.v1.r :as r]))
+             :refer [note note-void note-md note-as-md note-hiccup note-as-hiccup]]))
 
 ;; Be sure to install following packages:
 ;;
@@ -33,8 +32,7 @@ biocLite(c('flowCore', 'flowViz', 'hexbin'))
 
 (note-md :Setup "## Setup")
 
-(note-void (require '[clojisr.v1.r :as r :refer [r+ r r->clj clj->r clj->java java->clj java->r r->java]]
-                    '[clojisr.v1.require :refer [require-r]]
+(note-void (require '[clojisr.v1.r :as r :refer [r+ r r->clj clj->r clj->java java->clj java->r r->java require-r]]
                     '[clojisr.v1.applications.plotting :refer [plot->file]]))
 
 (note-void (r/discard-all-sessions))
@@ -2265,12 +2263,12 @@ biocLite(c('flowCore', 'flowViz', 'hexbin'))
 (note-void
  (def piechart (r '(function [x :data nil :panel ~panel-piechart ...]
                              (<- ocall (sys.call (sys.parent)))
-                             (brabra<- ocall 1 :value (quote piechart))
+                             (brabra<- ocall 1 :value 'piechart)
                              (<- ccall (match.call))
                              (<- ccall$data data)
                              (<- ccall$panel panel)
                              (<- ccall$default.scales {:draw false})
-                             (brabra<- ccall 1 :value (quote barchart))
+                             (brabra<- ccall 1 :value 'barchart)
                              (<- ans (eval.parent ccall))
                              (<- ans$call ocall)
                              ans))))

@@ -35,15 +35,6 @@
 
 (note ($ prediction 'confusion))
 (note (r->clj ($ prediction 'confusion)))
-;; => {["setosa" "setosa"] 10,
-;;     ["setosa" "versicolor"] 0,
-;;     ["setosa" "virginica"] 0,
-;;     ["versicolor" "setosa"] 0,
-;;     ["versicolor" "versicolor"] 10,
-;;     ["versicolor" "virginica"] 1,
-;;     ["virginica" "setosa"] 0,
-;;     ["virginica" "versicolor"] 1,
-;;     ["virginica" "virginica"] 8}
 
 (note-md "## check accuracy")
 
