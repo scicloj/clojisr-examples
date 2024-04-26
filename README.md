@@ -2,6 +2,8 @@
 
 We use this repo to create and share examples of using [Clojisr](https://github.com/scicloj/clojisr) (BETA13).
 
+This repo will soon be updated with rerendering of the notes.
+
 ## List of examples
 
 * [Template](https://scicloj.github.io/clojisr-examples/doc/clojisr-examples/template/)
